@@ -12,3 +12,4 @@ Optimization steps and measurements:
 
 1. Without optimization it runs 100000 generations for about 12413058.75 ms (~ 206 minutes)
 2. Array[Gen] is replaced by Array[Long], : 193615 ms, ~ 64 times faster than initial one
+3. Gray code is optimized: 123769 ms, ~ 100 times faster than initial one
