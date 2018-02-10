@@ -8,7 +8,7 @@ package org.nulljinn.genetic
 //5. decoded bits
 
 case class Numbers(chromosomesAmount: Int, lineBitsAmount: Int) {
-  val numberLinesAmount = lineBitsAmount / longBitsAmount + (if (lineBitsAmount % longBitsAmount > 0) 1 else 0)
+  val numberLinesAmount = (lineBitsAmount >> longBitsShift) + (if ((lineBitsAmount & longBitsMask) > 0) 1 else 0)
   val chromosomeNumbersAmount = numberLinesAmount * 5
   val generationNumbersAmount = chromosomesAmount * chromosomeNumbersAmount
   val genChromosomesAmount = chromosomesAmount * chromosomeNumbersAmount

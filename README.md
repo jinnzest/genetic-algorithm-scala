@@ -14,3 +14,4 @@ Optimization steps and measurements:
 2. Array[Gen] is replaced by Array[Long], : 193615 ms, ~ 64 times faster than initial one
 3. Gray code is optimized: 123769 ms, ~ 100 times faster than initial one
 4. All objects are moved to pools to reuse them: 44814 ms, ~ 276 faster than initial one
+5. / and % are replaced by >> and & when crossing bits: 41175 ms, ~ 301 times faster than initial one

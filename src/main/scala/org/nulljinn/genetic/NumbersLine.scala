@@ -11,7 +11,7 @@ class NumbersLine(var posLine: Int, var allPools: AllPools) {
     val lineBitsAmount = from.allPools.numbers.lineBitsAmount - fromBit
     val nBitsAmount = if (lineBitsAmount < bitsAmount) lineBitsAmount else bitsAmount
 
-    val shiftFrom = fromBit % longBitsAmount
+    val shiftFrom = fromBit & longBitsMask
 
     val bitsLeft = longBitsAmount - shiftFrom
 
@@ -19,21 +19,21 @@ class NumbersLine(var posLine: Int, var allPools: AllPools) {
 
     val afterLastBit = fromBit + nBitsAmount
 
-    val pByteFrom = fromBit / longBitsAmount
+    val pByteFrom = fromBit >> longBitsShift
 
-    val shiftTo = afterLastBit % longBitsAmount
+    val shiftTo = afterLastBit & longBitsMask
 
     val fullBytesFrom = if (shiftFrom > 0) pByteFrom + 1 else pByteFrom
 
-    val pByteTo = (afterLastBit - 1) / longBitsAmount
+    val pByteTo = (afterLastBit - 1) >> longBitsShift
 
     val fullBytesTo = if (shiftTo != 0) pByteTo - 1 else pByteTo
 
-    val fullBytesPresent = (nBitsAmount + shiftFrom) / longBitsAmount > 0 || shiftFrom == 0 && nBitsAmount / longBitsAmount > 0
+    val fullBytesPresent = (nBitsAmount + shiftFrom) >> longBitsShift > 0 || shiftFrom == 0 && (nBitsAmount >> longBitsShift) > 0
 
     val fromPresent = if (fullBytesPresent && shiftFrom == 0) false else shiftTo > 0 || shiftFrom > 0
 
-    val toPresent = afterLastBit / longBitsAmount > 0 && shiftTo > 0 && pByteFrom != pByteTo
+    val toPresent = afterLastBit >> longBitsShift > 0 && shiftTo > 0 && pByteFrom != pByteTo
 
     if (fromPresent) crossFirstNumber(shiftFrom, pByteFrom + posLine, pByteFrom + from.posLine, firstBitsAmount, bidirectional)
 
@@ -86,13 +86,13 @@ class NumbersLine(var posLine: Int, var allPools: AllPools) {
 
   def update(pos: Int, v: Boolean): Unit = if (v) setBit(pos) else clearBit(pos)
 
-  def apply(pos: Int): Boolean = (allPools.numbers(posLine + pos / longBitsAmount) & numberMask(pos)) != 0
+  def apply(pos: Int): Boolean = (allPools.numbers(posLine + (pos >> longBitsShift)) & numberMask(pos)) != 0
 
-  def getNumber(pos: Int): Long = allPools.numbers(pos / longBitsAmount)
+  def getNumber(pos: Int): Long = allPools.numbers(pos >> longBitsShift)
 
-  private def setBit(pos: Int) = allPools.numbers(posLine + pos / longBitsAmount) |= numberMask(pos)
+  private def setBit(pos: Int) = allPools.numbers(posLine + (pos >> longBitsShift)) |= numberMask(pos)
 
-  private def clearBit(pos: Int) = allPools.numbers(posLine + pos / longBitsAmount) &= ~numberMask(pos)
+  private def clearBit(pos: Int) = allPools.numbers(posLine + (pos >> longBitsShift)) &= ~numberMask(pos)
 }
 
 object NumbersLine {

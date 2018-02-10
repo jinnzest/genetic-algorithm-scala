@@ -4,6 +4,8 @@ package object genetic {
 
   val genesPerGroup = 4
   val longBitsAmount = 64
+  val longBitsMask = longBitsAmount-1
+  val longBitsShift = Integer.bitCount(longBitsMask)
 
   def normalizeFitness(fitness: Double, minFitness: Double, maxFitness: Double): Double = {
     val basedFitness = fitness - minFitness
@@ -61,5 +63,5 @@ package object genetic {
     }
   }
 
-  def numberMask(pos: Int): Long = 1L << pos % longBitsAmount
+  def numberMask(pos: Int): Long = 1L << (pos & longBitsMask)
 }
