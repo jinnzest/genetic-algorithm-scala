@@ -1,6 +1,6 @@
 package org.nulljinn.genetic
 
-import java.util.Random
+import java.util.concurrent.ThreadLocalRandom
 
 import org.nulljinn.genetic.Gen._
 
@@ -10,7 +10,7 @@ class RandomUtilsImpl(val chromosomeGenesAmount: Int) extends RandomUtils {
   private val crossProbability = 2 * chromosomeGenesAmount / 1000000.0
 
   //  private val rand = new SecureRandom() //TODO find a way to make it faster
-  private val rand = new Random()
+  private def rand = ThreadLocalRandom.current()
 
   override def selectIndividualProbability(fitness: Double): Boolean = fitness > rand.nextDouble()
 
