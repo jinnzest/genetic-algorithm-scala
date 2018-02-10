@@ -1,17 +1,17 @@
 package org.nulljinn.genetic
 
-import org.scalatest.{MustMatchers, WordSpec}
+import org.scalacheck.{Gen => SCGen}
 
-class UtilsTest extends WordSpec with MustMatchers {
+class UtilsTest extends TestsBase {
   "genetic package methods" when {
     "calc gray code" should {
       "1000 -> 1111" in {
-        val res = gray2bin((true :: false :: false :: false :: Nil).toArray)
-        res mustBe true :: true :: true :: true :: Nil
+        val res = gray2bin(0x8)
+        res & 0xF mustBe 0xF
       }
       "1111 -> 1010" in {
-        val res = gray2bin((true :: true :: true :: true :: Nil).toArray)
-        res mustBe true :: false :: true :: false :: Nil
+        val res = gray2bin(0xF)
+        res & 0xF mustBe 0xA
       }
     }
     "normalize fitness" should {
@@ -45,27 +45,25 @@ class UtilsTest extends WordSpec with MustMatchers {
     }
     "decodeBitsToNumbers" should {
       "0000000000000000000000000000000000000000000000000000000000000010 be 3" in {
-        val listOf52False = (1 to 62).foldLeft(List.empty[Boolean])((acc, _) => false :: acc)
-        decodeBitsToNumbers((listOf52False ::: true :: false :: Nil).toArray) mustBe (3 :: Nil).toArray
+        decodeBitsToNumbers(NumbersLine(
+          "0000000000000000000000000000000000000000000000000000000000000010"
+        ).numbers) mustBe (3 :: Nil).toArray
       }
       "0000000000000000000000000000000000000000000000000000000010000000 be 255" in {
-        val listOf52False = (1 to 56).foldLeft(List.empty[Boolean])((acc, _) => false :: acc)
-        val listOf7False = (1 to 7).foldLeft(List.empty[Boolean])((acc, _) => false :: acc)
-        decodeBitsToNumbers((listOf52False ::: true :: listOf7False).toArray) mustBe (255 :: Nil).toArray
+        decodeBitsToNumbers(NumbersLine(
+          "0000000000000000000000000000000000000000000000000000000010000000"
+        ).numbers) mustBe (255 :: Nil).toArray
       }
-      "0000000000000000000000000000001000000000000000000000000000000011 be 3, 2" in {
-        val listOf52False = (1 to 62).foldLeft(List.empty[Boolean])((acc, _) => false :: acc)
+      "0000000000000000000000000000000000000000000000000000000000000010" +
+        "0000000000000000000000000000000000000000000000000000000000000011 be 3, 2" in {
         decodeBitsToNumbers(
-          (listOf52False ::: true :: false :: listOf52False ::: true :: true :: Nil).toArray) mustBe (3 :: 2 :: Nil).toArray
+          NumbersLine(
+            "0000000000000000000000000000000000000000000000000000000000000010" +
+              "0000000000000000000000000000000000000000000000000000000000000011"
+          ).numbers.reverse
+        ) mustBe (3 :: 2 :: Nil).toArray
       }
     }
-    "toNumber" should {
-      "11111111 -> 255" in {
-        toNumber((true :: true :: true :: true :: true :: true :: true :: true :: Nil).toArray) mustBe 255
-      }
-      "00000000 -> 0" in {
-        toNumber((false :: false :: false :: false :: false :: false :: false :: false :: Nil).toArray) mustBe 0
-      }
-    }
+
   }
 }

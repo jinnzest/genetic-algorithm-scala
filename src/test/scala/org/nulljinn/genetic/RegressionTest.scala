@@ -57,8 +57,15 @@ class RegressionTest extends FreeSpec with MustMatchers {
     }
 
     val fitnessCalculator = new FitnessCalculator {
-      override def calcFitness(bits: Array[Boolean]): Double = sign * bits.foldLeft(0.0) { (acc, v) =>
-        if (v) acc + 1 else acc
+      override def calcFitness(bits: Array[Long]): Double = {
+        sign * bits.foldLeft(0.0) { (acc, v) =>
+          var bitMask = 1L
+          acc + (0 until longBitsAmount).foldLeft(0.0) { (acc2, _) =>
+            val res = acc2 + (if ((v & bitMask) != 0) 1 else 0)
+            bitMask <<= 1
+            res
+          }
+        }
       }
     }
     val rand = new RandomUtilsMock(genesAmount, genFrom, genTo)

@@ -35,5 +35,7 @@ class IndividualsIncubator(chromosomesAmount: Int, breeding: Breeding, fitnessCa
     )
   }
 
+  override def toString: String = generation.toString
+
   def getChromosomes: Array[Chromosome] = generation.individuals.map(_.chromosome)
 }

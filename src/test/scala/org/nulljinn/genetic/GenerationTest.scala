@@ -1,5 +1,7 @@
 package org.nulljinn.genetic
 
+import org.scalacheck.Arbitrary.arbitrary
+
 class GenerationTest extends TestsBase {
 
   val defaultCanBreedMock: (Double, Double, Double) => Boolean = (_, _, _) => true
@@ -33,24 +35,22 @@ class GenerationTest extends TestsBase {
       }
       "make worstIndividual to be equal to worst individual from generation" in {
         val size = 5
-        val individuals = List.fill(size)(Individual(0.5, chr))
+        val individuals = Array.fill(size)(Individual(0.5, chr))
         val worstIndividual = Individual(0.0, chr)
-        val foundWorstIndividual = Generation((worstIndividual :: individuals).toArray, defaultCanBreedMock).findWorstIndividual()
+        val foundWorstIndividual = Generation(individuals :+ worstIndividual, defaultCanBreedMock).findWorstIndividual()
         foundWorstIndividual mustBe worstIndividual
       }
       "make worstIndividual to be bigger than worst individual if fitness of the last one is worst 20 times then the overage by generation" in {
         val worseButBetterThatWorst = Individual(1001, chr)
-        val individuals = worseButBetterThatWorst :: Individual(1002, chr) :: Individual(1003, chr) :: Individual(1004, chr) ::
-          Individual(1, chr) :: Nil
-        val foundWorstIndividual = Generation(individuals.toArray, defaultCanBreedMock).findWorstIndividual()
+        val individuals = Array(worseButBetterThatWorst, Individual(1002, chr), Individual(1003, chr), Individual(1004, chr),
+          Individual(1, chr))
+        val foundWorstIndividual = Generation(individuals, defaultCanBreedMock).findWorstIndividual()
         foundWorstIndividual mustBe worseButBetterThatWorst
       }
-      "get overage fitness of generation" in forAll { (fitnesses: List[Double]) =>
-        if (fitnesses.nonEmpty) {
-          val individuals = fitnesses.map(f => Individual(f, chr))
-          val foundOverageFitness = Generation(individuals.toArray, defaultCanBreedMock).overageFitness
-          foundOverageFitness mustBe (fitnesses.sum / fitnesses.size)
-        }
+      "get overage fitness of generation" in forAll(arbitrary[Array[Double]].filter(_.length > 0)) { fitnesses =>
+        val individuals = fitnesses.map(f => Individual(f, chr))
+        val foundOverageFitness = Generation(individuals, defaultCanBreedMock).overageFitness
+        foundOverageFitness mustBe (fitnesses.sum / fitnesses.length)
       }
     }
   }
