@@ -1,7 +1,18 @@
 package org.nulljinn.genetic
 
 class Breeding(rand: RandomUtils) {
-  def generateChromosome(): Chromosome = Chromosome(rand.generateZygote(), rand.generateZygote())
+  def generateChromosome(allPools: AllPools): Chromosome = {
+    val numbers = allPools.numbers
+    val chrPos = numbers.obtainPos()
+    val dZygote = rand.generateZygote(numbers.dominantZygotePos(chrPos))
+    val rZygote = rand.generateZygote(numbers.recessiveZygotePos(chrPos))
+    val chr = allPools.chromosomesArray.next()
+    chr.dZygote = dZygote
+    chr.rZygote = rZygote
+    chr.allPools = allPools
+    chr.chrPos = chrPos
+    chr
+  }
 
   def canBreed(fitness: Double, minFitness: Double, maxFitness: Double): Boolean =
     rand.selectIndividualProbability(normalizeFitness(fitness, minFitness, maxFitness))

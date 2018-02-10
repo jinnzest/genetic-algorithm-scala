@@ -46,23 +46,29 @@ class UtilsTest extends AnyWordSpec {
     }
     "decodeBitsToNumbers" should {
       "0000000000000000000000000000000000000000000000000000000000000010 be 3" in {
-        assert(decodeBitsToNumbers(NumbersLine(
-          "0000000000000000000000000000000000000000000000000000000000000010"
-        ).numbers) sameElements (3 :: Nil))
+        val pools = AllPools(1, 1, 4)
+        val numbersLine = pools.numberLines.newObj()
+        numbersLine(1) = true
+        decodeBitsToNumbers(0, pools.numbers)
+        assert(pools.numbers(0) == 3)
       }
       "0000000000000000000000000000000000000000000000000000000010000000 be 255" in {
-        assert(decodeBitsToNumbers(NumbersLine(
-          "0000000000000000000000000000000000000000000000000000000010000000"
-        ).numbers) sameElements (255 :: Nil))
+        val pools = AllPools(1, 1, 4)
+        val numbersLine = pools.numberLines.newObj()
+        numbersLine(7) = true
+        decodeBitsToNumbers(0, pools.numbers)
+        assert(pools.numbers(0) == 255)
       }
       "0000000000000000000000000000000000000000000000000000000000000010" +
         "0000000000000000000000000000000000000000000000000000000000000011 be 3, 2" in {
-        assert(decodeBitsToNumbers(
-          NumbersLine(
-            "0000000000000000000000000000000000000000000000000000000000000010" +
-              "0000000000000000000000000000000000000000000000000000000000000011"
-          ).numbers.reverse
-        ) sameElements (3 :: 2 :: Nil))
+        val pools = AllPools(1, 2, 64)
+        val numbersLine = pools.numberLines.newObj()
+        numbersLine(0) = true
+        numbersLine(1) = true
+        numbersLine(65) = true
+        decodeBitsToNumbers(0, pools.numbers)
+        assert(pools.numbers(0) == 2)
+        assert(pools.numbers(1) == 3)
       }
     }
 

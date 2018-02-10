@@ -5,53 +5,59 @@ import org.scalatest.wordspec.AnyWordSpec
 import org.scalatestplus.scalacheck.ScalaCheckPropertyChecks.forAll
 
 class ChromosomeTest extends AnyWordSpec {
-
-  def toBoolArray(str: String): Array[Boolean] = str.map {
-    case '0' => false
-    case '1' => true
-  }.toArray.reverse
-
   "Chromosome" when {
     "decode first zygote with dominant genes" should {
       "always override recessive genes of second  zygote" in {
-        assert(Chromosome("DDdd", "RrRr").decodeGenotype(0) == 0xC)
+        val pools = AllPools(1, 1, 4)
+        val genotype = Chromosome("DDdd", "RrRr", pools).decodeGenotype
+        assert(pools.numbers(genotype) == 0xC)
       }
-      "always override dominant genes of second  zygote" in {
-        assert(Chromosome("DDdd", "DdDd").decodeGenotype(0) == 0xC)
+      "always override dominant genes of second zygote" in {
+        val pools = AllPools(1, 1, 4)
+        assert(pools.numbers(Chromosome("DDdd", "DdDd", pools).decodeGenotype) == 0xC)
       }
     }
     "decode first zygote with recessive genes" should {
       "always override recessive genes of second zygote" in {
-        assert(Chromosome("RRrr", "RrRr").decodeGenotype(0) == 0xC)
+        val pools = AllPools(1, 1, 4)
+        assert(pools.numbers(Chromosome("RRrr", "RrRr", pools).decodeGenotype) == 0xC)
       }
       "always be overridden by dominant genes of second zygote" in {
-        assert(Chromosome("RRrr", "DdDd").decodeGenotype(0) == 0xA)
+        val pools = AllPools(1, 1, 4)
+        assert(pools.numbers(Chromosome("RRrr", "DdDd", pools).decodeGenotype) == 0xA)
       }
     }
     "cross zygotes" should {
       "swap 3 genes starting from pos 2" in {
-        assert(Chromosome("dddd dddd", "rrrr rrrr").crossZygotes(2, 3).toString == Chromosome("dddr rrdd", "rrrd ddrr").toString)
+        val pools = AllPools(2, 1, 8)
+        val crossed = Chromosome("dddddddd", "rrrrrrrr", pools)
+        assert(crossed.crossZygotes(2, 3).toString == Chromosome("dddrrrdd", "rrrdddrr", pools).toString)
       }
-      "swap whole right part of chromosome if num of genes to move bigger than size of chromosome" in forAll(SCGen.posNum[Int]) {
+      "swap whole right part of chromosome if num of genes to move bigger than size of chromosome" in forAll(SCGen.posNum[Int]) { (pos: Int) =>
         (pos: Int) =>
-          assert(Chromosome("dddd dddd", "rrrr rrrr").crossZygotes(3, 5 + pos).toString == Chromosome("rrrr rddd", "dddd drrr").toString)
+          val pools = AllPools(2, 1, 4)
+          val chromosome = Chromosome("ddddd", "rrrrr", pools)
+          assert(chromosome.crossZygotes(3, 5 + pos).toString == Chromosome("rrddd", "ddrrr", pools).toString)
       }
     }
     "cross chromosomes" should {
       "cross dominant zygote for first parent with dominant zygote of second one and recessive zygote of first one with recessive zygote of second one" in {
-        val firstParent = Chromosome("dddd dddd", "rrrr rrrr")
-        val secondParent = Chromosome("DDDD DDDD", "RRRR RRRR")
-        assert(firstParent.crossChromosomes(secondParent, 1, 2).toString == Chromosome("dddd dDDd", "rrrr rRRr").toString)
+        val pools = AllPools(4, 1, 5)
+        val firstParent = Chromosome("dddd dddd", "rrrr rrrr", pools)
+        val secondParent = Chromosome("DDDD DDDD", "RRRR RRRR", pools)
+        assert(firstParent.crossChromosomes(secondParent, 1, 2).toString == Chromosome("dddd dDDd", "rrrr rRRr", pools).toString)
       }
-    }
-    "mutate" should {
-      "change gen in defined position of dominant zygote" in {
-        assert(Chromosome("dddd dddd", "rrrr rrrr").mutate(2, Gen.R1).toString == Chromosome("dddd dRdd", "rrrr rrrr").toString)
+      "mutate" should {
+        "change gen in defined position of dominant zygote" in {
+          val pools = AllPools(2, 1, 5)
+          assert(Chromosome("dddd dddd", "rrrr rrrr", pools).mutate(2, Gen.R1).toString == Chromosome("dddd dRdd", "rrrr rrrr", pools).toString)
+        }
       }
     }
     "toString" should {
       "return strings concatenation of apply method params" in {
-        assert(Chromosome("dDrR rrrr", "RrDd dddd").toString == "dDrR rrrr\nRrDd dddd")
+        val pools = AllPools(1, 1, 8)
+        assert(Chromosome("dDrR rrrr", "RrDd dddd", pools).toString == "dDrR rrrr\nRrDd dddd")
       }
     }
   }
