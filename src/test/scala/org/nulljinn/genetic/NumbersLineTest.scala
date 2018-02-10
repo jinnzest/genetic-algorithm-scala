@@ -9,16 +9,24 @@ class NumbersLineTest extends TestsBase {
   "NumbersLine" when {
     "toString" should {
       "write 0xF to numbers line if 1111 is passed to apply" in {
-        NumbersLine("1111").getNumber(0) & 0xFF mustBe 0xF
+        val pools = AllPools(1, 1, 4)
+        NumbersLine("1111", pools.numbers.obtainPos(), pools)
+        pools.numbers(0) & 0xFF mustBe 0xF
       }
       "write 0 to numbers line if 0000 is passed to apply" in {
-        NumbersLine("0000").getNumber(0) & 0xFF mustBe 0
+        val pools = AllPools(1,1,4)
+        NumbersLine("0000", pools.numbers.obtainPos(), pools)
+        pools.numbers(0) & 0xFF mustBe 0
       }
       val charBitsGen = SCGen.listOfN(25 * longBitsAmount, SCGen.oneOf('0', '1'))
       "fromStr -> toStr should return original str" in forAll(charBitsGen) { chars =>
         val referenceStr = groupByIntAndBytePos(chars)
-        val line = NumbersLine(referenceStr)
+        val pools = AllPools(1,5,longBitsAmount*5)
+        val line = NumbersLine(referenceStr, pools.numbers.obtainPos(), pools)
         val obtainedStr = line.toString
+        if(obtainedStr!=referenceStr){
+          val m =1
+        }
         obtainedStr mustBe referenceStr
       }
     }
@@ -49,8 +57,11 @@ class NumbersLineTest extends TestsBase {
         val crossedStrTo = groupByIntAndBytePos(cross(startBit, bitsAmount, from.reverse.replaceAll(" ", ""), to.reverse.replaceAll(" ", ""))).reverse
         val crossedStrFrom = groupByIntAndBytePos(cross(startBit, bitsAmount, to.reverse.replaceAll(" ", ""), from.reverse.replaceAll(" ", ""))).reverse
 
-        val lineFrom = NumbersLine(from)
-        val lineTo = NumbersLine(to)
+        val allPools = AllPools(5, 5, longBitsAmount * 5)
+        allPools.numbers.obtainPos()
+        val pos = allPools.numbers.obtainPos()
+        val lineFrom = NumbersLine(from, pos, allPools)
+        val lineTo = NumbersLine(to, pos + allPools.numbers.numberLinesAmount, allPools)
         lineTo.crossBits(lineFrom, startBit, bitsAmount, true)
         val resultStrTo = lineTo.toString
         val resultStrFrom = lineFrom.toString

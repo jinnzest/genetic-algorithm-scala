@@ -24,21 +24,19 @@ package object genetic {
     r
   }
 
-  def decodeBitsToNumbers(numbers: Array[Long]): Array[Long] = {
+  def decodeBitsToNumbers(pos: Int, numbers: Numbers): Unit = {
     var p = 0
-    val decoded = numbers.clone()
-    while (p <  numbers.length) {
-      decoded(p) = gray2bin(numbers(p))
+    while (p < numbers.numberLinesAmount) {
+      numbers(pos + p) = gray2bin(numbers(pos + p))
       p += 1
     }
-    decoded
   }
 
-  def toStr(numbers: Array[Long]): String = {
+  def toStr(pos: Int, numbers: Numbers): String = {
     var p = 0
     var str = ""
-    while (p < numbers.length) {
-      str += numbers(p) + " "
+    while (p < numbers.numberLinesAmount) {
+      str += numbers(pos + p) + " "
       p += 1
     }
     str

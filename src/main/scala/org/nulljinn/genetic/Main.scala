@@ -6,22 +6,35 @@ object Main {
   private val chromosomeGenesAmount = amountOfVariables * longBitsAmount
 
   private def createIncubator() = {
-    val rand = new RandomUtilsPerfImpl(chromosomeGenesAmount)
+    val pools = AllPools(chromosomesAmount, amountOfVariables, longBitsAmount)
+    val rand = new RandomUtilsImpl(chromosomeGenesAmount, pools)
     val fitnessCalculator = new FitnessCalculator {
-      override def calcFitness(bits: Array[Long]): Double =
-        funcToFindGlobalExtremum(decodeBitsToNumbers(bits))
+      override def calcFitness(pos: Int): Double = {
+        decodeBitsToNumbers(pos, pools.numbers)
+        -funcToFindGlobalExtremum(pos)
+      }
 
-      private def funcToFindGlobalExtremum(numbers: Array[Long]) = numbers.map(_.toDouble).sum
+      private def funcToFindGlobalExtremum(pos: Int): Double = {
+        var p = 0
+        var prod = 1.0
+        while (p < pools.numbers.numberLinesAmount) {
+          val long = pools.numbers(pos + p)
+          prod += long
+          p += 1
+        }
+        prod
+      }
     }
+
     new IndividualsIncubator(
-      chromosomesAmount, new Breeding(rand), fitnessCalculator
+      pools, new Breeding(rand), fitnessCalculator
     )
   }
 
   private val generationsAmount = 100000
 
   def main(args: Array[String]): Unit = {
-    //    printIntermediateResults(runGenerationsForFitness(-1))
+    //        printIntermediateResults(runGenerationsForFitness(-1))
     printIntermediateResults(runGenerationsForCount(generationsAmount))
   }
 
@@ -52,9 +65,11 @@ object Main {
   private def runGenerationsForFitness(finalFitness: Int) = {
     var genCount = 0
     val incubator = createIncubator()
+    printIntermediateResults(incubator, genCount)
     while (incubator.getBestIndividual.fitness != finalFitness) {
       incubator.makeNextGeneration()
-      if (genCount % 100 == 0) printIntermediateResults(incubator, genCount)
+      if (genCount % 1000 == 0)
+        printIntermediateResults(incubator, genCount)
       genCount += 1
     }
     (incubator, genCount)
@@ -67,11 +82,11 @@ object Main {
     println(s"min=\n${incubator.getWorstIndividual}")
     println(s"max=\n${incubator.getBestIndividual}\n")
     val decodedArrayPos = incubator.getWorstIndividual.chromosome.decodeGenotype
-    decodeBitsToNumbers(decodedArrayPos)
-    val worst = toStr(decodedArrayPos)
+    decodeBitsToNumbers(decodedArrayPos, incubator.getBestIndividual.chromosome.allPools.numbers)
+    val worst = toStr(decodedArrayPos, incubator.getBestIndividual.chromosome.allPools.numbers)
     println(s"$worst")
-    decodeBitsToNumbers(incubator.getBestIndividual.chromosome.decodeGenotype)
-    val best = toStr(decodedArrayPos)
+    decodeBitsToNumbers(incubator.getBestIndividual.chromosome.decodeGenotype, incubator.getBestIndividual.chromosome.allPools.numbers)
+    val best = toStr(decodedArrayPos, incubator.getBestIndividual.chromosome.allPools.numbers)
     println(s"$best\n\n\n")
     println(s"genNum=$cnt")
   }

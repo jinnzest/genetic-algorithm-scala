@@ -1,7 +1,5 @@
 package org.nulljinn.genetic
 
-import org.scalacheck.{Gen => SCGen}
-
 class UtilsTest extends TestsBase {
   "genetic package methods" when {
     "calc gray code" should {
@@ -45,23 +43,29 @@ class UtilsTest extends TestsBase {
     }
     "decodeBitsToNumbers" should {
       "0000000000000000000000000000000000000000000000000000000000000010 be 3" in {
-        decodeBitsToNumbers(NumbersLine(
-          "0000000000000000000000000000000000000000000000000000000000000010"
-        ).numbers) mustBe (3 :: Nil).toArray
+        val pools = AllPools(1, 1, 4)
+        val numbersLine = pools.numberLines.newObj()
+        numbersLine(1) = true
+        decodeBitsToNumbers(0, pools.numbers)
+        pools.numbers(0) mustBe 3
       }
       "0000000000000000000000000000000000000000000000000000000010000000 be 255" in {
-        decodeBitsToNumbers(NumbersLine(
-          "0000000000000000000000000000000000000000000000000000000010000000"
-        ).numbers) mustBe (255 :: Nil).toArray
+        val pools = AllPools(1, 1, 4)
+        val numbersLine = pools.numberLines.newObj()
+        numbersLine(7) = true
+        decodeBitsToNumbers(0, pools.numbers)
+        pools.numbers(0) mustBe 255
       }
       "0000000000000000000000000000000000000000000000000000000000000010" +
         "0000000000000000000000000000000000000000000000000000000000000011 be 3, 2" in {
-        decodeBitsToNumbers(
-          NumbersLine(
-            "0000000000000000000000000000000000000000000000000000000000000010" +
-              "0000000000000000000000000000000000000000000000000000000000000011"
-          ).numbers.reverse
-        ) mustBe (3 :: 2 :: Nil).toArray
+        val pools = AllPools(1, 2, 64)
+        val numbersLine = pools.numberLines.newObj()
+        numbersLine(0) = true
+        numbersLine(1) = true
+        numbersLine(65) = true
+        decodeBitsToNumbers(0, pools.numbers)
+        pools.numbers(0) mustBe 2
+        pools.numbers(1) mustBe 3
       }
     }
 

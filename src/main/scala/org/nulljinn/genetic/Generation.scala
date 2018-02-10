@@ -1,40 +1,51 @@
 package org.nulljinn.genetic
 
+class Parents(var parentA: Individual, var parentB: Individual) {
+  override def toString = s"$parentA\n$parentB"
+}
+
 case class Generation(individuals: Array[Individual], canBreed: (Double, Double, Double) => Boolean) {
+  def recalculate(): Unit = {
+    overageFitness = calcOverageFitness()
+    minFitness = findWorstIndividual().fitness
+    maxFitness = findBestIndividual().fitness
+  }
+
+  private val parents: Array[Parents] = Array.fill(individuals.length)(new Parents(null, null))
 
   private var pos = 0
 
-  val overageFitness: Double = calcOverageFitness()
+  var overageFitness: Double = calcOverageFitness()
 
-  private val minFitness: Double = findWorstIndividual().fitness
+  private var minFitness: Double = findWorstIndividual().fitness
 
-  private val maxFitness: Double = findBestIndividual().fitness
+  private var maxFitness: Double = findBestIndividual().fitness
 
-  def selectParentPairs(): Array[(Individual, Individual)] = {
-    val parents: Array[Option[(Individual, Individual)]] = Array.fill(individuals.length)(None)
+  def selectParentPairs(): Array[Parents] = {
     var pairPos = 0
     while (pairPos < individuals.length) {
-      val firstParentPos = findParentPos()
-      var secondParentPos = findParentPos()
-      if (firstParentPos == secondParentPos) {
-        secondParentPos = if (pos > 0) pos - 1 else individuals.length - 1
+      val firstParent = findParent(individuals.length)
+      var secondParent = findParent(individuals.length)
+      if (firstParent.eq(secondParent)) {
+        secondParent = if (pos > 0) individuals(pos - 1) else individuals.last
       }
-      parents(pairPos) = Some((individuals(firstParentPos), individuals(secondParentPos)))
+      parents(pairPos).parentA = firstParent
+      parents(pairPos).parentB = secondParent
       pairPos += 1
     }
-    parents.map(_.get)
+    parents
   }
 
-  private def findParentPos() = {
-    var foundParentPos = -1
-    while (foundParentPos == -1) {
+  private def findParent(indLength: Int) = {
+    var foundParent: Individual = null
+    while (foundParent == null) {
       val candidate = individuals(pos)
       if (canBreed(candidate.fitness, minFitness, maxFitness)) {
-        foundParentPos = pos
+        foundParent = candidate
       }
-      if (pos < individuals.length - 1) pos += 1 else pos = 0
+      if (pos < indLength - 1) pos += 1 else pos = 0
     }
-    foundParentPos
+    foundParent
   }
 
   def findWorstIndividual(): Individual = {

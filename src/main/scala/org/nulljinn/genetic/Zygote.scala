@@ -3,10 +3,11 @@ package org.nulljinn.genetic
 import org.nulljinn.genetic.Gen._
 
 
-case class Zygote(dominance: NumbersLine, values: NumbersLine) {
+class Zygote(var dominance: NumbersLine, var values: NumbersLine, var zygotePos: Int, var allPools: AllPools) {
 
-  def cloneZygote() = {
-    Zygote(dominance.cloneLine(), values.cloneLine())
+  def copyBits(from: Zygote): Unit = {
+    dominance.copyBits(from.dominance)
+    values.copyBits(from.values)
   }
 
   def mutate(pos: Int, newGen: Gen): Zygote = {
@@ -21,7 +22,7 @@ case class Zygote(dominance: NumbersLine, values: NumbersLine) {
   }
 
   override def toString: String = {
-    (0 until dominance.size)
+    (0 until allPools.numbers.lineBitsAmount)
       .foldRight(new StringBuilder) { (pos, acc) =>
         acc.append((dominance(pos), values(pos)) match {
           case (true, true) => 'D'
@@ -59,14 +60,16 @@ case class Zygote(dominance: NumbersLine, values: NumbersLine) {
 }
 
 object Zygote {
-
-  def apply(s: String): Zygote = {
+  //being used in tests only
+  def apply(s: String, pos: Int, allPools: AllPools): Zygote = {
+    val zgt = allPools.zygotesArray.next()
+    zgt.zygotePos = pos
+    zgt.dominance = allPools.numberLines.next()
+    zgt.dominance.posLine = allPools.numbers.dominantZygotePos(pos)
+    zgt.values = allPools.numberLines.next()
+    zgt.values.posLine = allPools.numbers.valuesPos(pos)
     val normalizedStr = s.filterNot(_ == ' ')
-    val length = normalizedStr.length
-    val len = length / longBitsAmount
-    val nLen = len + 1
-    val zgt = Zygote(new NumbersLine(Array.fill[Long](nLen)(0), length), new NumbersLine(Array.fill[Long](nLen)(0), length))
-    var p = length - 1
+    var p = normalizedStr.length - 1
     normalizedStr.foreach { v =>
       v match {
         case 'D' => zgt.dominance(p) = true; zgt.values(p) = true
@@ -77,5 +80,19 @@ object Zygote {
       p -= 1
     }
     zgt
+  }
+
+  def newDL(pos: Int, allPools: AllPools): NumbersLine = {
+    val line = allPools.numberLines.next()
+    line.posLine = allPools.numbers.dominancePos(pos)
+    line.allPools = allPools
+    line
+  }
+
+  def newVL(pos: Int, allPools: AllPools): NumbersLine = {
+    val line = allPools.numberLines.next()
+    line.posLine = allPools.numbers.valuesPos(pos)
+    line.allPools = allPools
+    line
   }
 }

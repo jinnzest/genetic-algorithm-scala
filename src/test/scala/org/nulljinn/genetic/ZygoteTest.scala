@@ -7,7 +7,10 @@ class ZygoteTest extends TestsBase {
 
   private val chromosomeGenesAmount = 100
 
-  private def generateZygote() = new RandomUtilsPerfImpl(chromosomeGenesAmount).generateZygote()
+  private def generateZygote() = {
+    val pools = AllPools(1, 4, chromosomeGenesAmount)
+    new RandomUtilsImpl(chromosomeGenesAmount, pools).generateZygote(pools.numbers.obtainPos())
+  }
 
   "Zygote" when {
     val genGen = org.scalacheck.Gen.oneOf(D1, D0, R1, R0)
@@ -55,49 +58,58 @@ class ZygoteTest extends TestsBase {
         zgt.toString.length mustBe crossedZygote.toString.length
       }
       "cross parts" in {
-        val zgt1 = Zygote("dddd dddd dddd")
-        val zgt2 = Zygote("rrrr rrrr rrrr")
+        val pools = AllPools(2, 1, 12)
+        val zgt1 = Zygote("dddd dddd dddd", pools.numbers.obtainPos(), pools)
+        val zgt2 = Zygote("rrrr rrrr rrrr", pools.numbers.obtainPos(), pools)
         val crossed = zgt1.cross(zgt2, 3, 4, false)
         crossed.toString mustBe "dddd drrr rddd"
       }
-      "cross parts when end pos bigger than size" in {
-        val zgt1 = Zygote("dddd dddd dddd")
-        val zgt2 = Zygote("rrrr rrrr rrrr")
+      "cross parts when end pos is bigger than size" in {
+        val pools = AllPools(2, 1, 12)
+        val zgt1 = Zygote("dddd dddd dddd", pools.numbers.obtainPos(), pools)
+        val zgt2 = Zygote("rrrr rrrr rrrr", pools.numbers.obtainPos(), pools)
         zgt1.cross(zgt2, 3, 50, true).toString mustBe "rrrr rrrr rddd"
       }
     }
     "compose numbers from str" should {
-      "map rrrr to (0x0,0x0)" in {
-        val zygote = Zygote("rrrr")
-        zygote.dominance.getNumber(0) & 0xF mustBe 0x0
-        zygote.values.getNumber(0) & 0xF mustBe 0x0
-      }
+      val pools = AllPools(1, 4, 1)
+      Zygote("rrrr", pools.numbers.obtainPos(), pools)
+      pools.numbers(pools.numbers.dominancePos(0)) & 0xF mustBe 0
+      pools.numbers(pools.numbers.valuesPos(0)) & 0xF mustBe 0
+
       "map dddd to (0xF,0x0)" in {
-        val zygote = Zygote("dddd")
-        zygote.dominance.getNumber(0) & 0xF mustBe 0xF
-        zygote.values.getNumber(0) & 0xF mustBe 0x0
+        val pools = AllPools(1, 2, 2)
+        val pos = pools.numbers.obtainPos()
+        Zygote("dddd", pos, pools)
+        pools.numbers(pools.numbers.dominancePos(pos)) & 0xF mustBe 0xF
+        pools.numbers(pools.numbers.valuesPos(pos)) & 0xF mustBe 0
       }
       "map DDDD to (0xF,0xF)" in {
-        val zygote = Zygote("DDDD")
-        zygote.dominance.getNumber(0) & 0xF mustBe 0xF
-        zygote.values.getNumber(0) & 0xF mustBe 0xF
+        val pools = AllPools(1, 1, 4)
+        Zygote("DDDD", pools.numbers.obtainPos(), pools)
+        pools.numbers(pools.numbers.dominancePos(0)) & 0xF mustBe 0xF
+        pools.numbers(pools.numbers.valuesPos(0)) & 0xF mustBe 0xF
       }
       "map RRRR to (0x0,0xF)" in {
-        val zygote = Zygote("RRRR")
-        zygote.dominance.getNumber(0) & 0xF mustBe 0x0
-        zygote.values.getNumber(0) & 0xF mustBe 0xF
+        val pools = AllPools(1, 1, 4)
+        Zygote("RRRR", pools.numbers.obtainPos(), pools)
+        pools.numbers(pools.numbers.dominancePos(0)) & 0xF mustBe 0
+        pools.numbers(pools.numbers.valuesPos(0)) & 0xF mustBe 0xF
       }
       "map DDRRddrr to (0xCC,0xF0)" in {
-        val zygote = Zygote("DDRR ddrr")
-        zygote.dominance.getNumber(0) & 0xFF mustBe 0xCC
-        zygote.values.getNumber(0) & 0xFF mustBe 0xF0
+        val pools = AllPools(1, 2, 4)
+        Zygote("DDRR ddrr", pools.numbers.obtainPos(), pools)
+        pools.numbers(pools.numbers.dominancePos(0)) & 0xFF mustBe 0xCC
+        pools.numbers(pools.numbers.valuesPos(0)) & 0xFF mustBe 0xF0
       }
       "map DDRRddrr to and back" in {
-        Zygote("DDRR ddrr").toString mustBe "DDRR ddrr"
+        val pools = AllPools(1, 2, 4)
+        Zygote("DDRR ddrr", pools.numbers.obtainPos(), pools).toString mustBe "DDRR ddrr"
       }
-      "pass 70 random genes to and back without modifications" in forAll(SCGen.listOfN(72, SCGen.oneOf('D', 'd', 'R', 'r'))) { (chars: List[Char]) =>
+      "pass 70 random gens to and back without modifications" in forAll(SCGen.listOfN(72, SCGen.oneOf('D', 'd', 'R', 'r'))) { (chars: List[Char]) =>
+        val pools = AllPools(1, 2, 36)
         val reference = groupByIntAndBytePos(chars)
-        val restored = Zygote(reference).toString
+        val restored = Zygote(reference, pools.numbers.obtainPos(), pools).toString
         restored mustBe reference
       }
     }
