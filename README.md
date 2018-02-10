@@ -16,3 +16,4 @@ Optimization steps and measurements:
 4. All objects are moved to pools to reuse them: 44814 ms, ~ 276 faster than initial one
 5. / and % are replaced by >> and & when crossing bits: 41175 ms, ~ 301 times faster than initial one
 6. Random is replaced by ThreadLocalRandom: 34386 ms, ~ 360 times faster than initial one
+7. Array.copy is replaced by java.lang.System.arraycopy: 33973 ms, ~ 365 times faster than initial one

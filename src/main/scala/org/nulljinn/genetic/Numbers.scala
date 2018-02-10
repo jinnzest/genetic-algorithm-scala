@@ -35,7 +35,7 @@ case class Numbers(chromosomesAmount: Int, lineBitsAmount: Int) {
 
   def copy(posLine: Int, posTo: Int): Unit = copy(posLine, posTo, numberLinesAmount)
 
-  def copy(from: Int, to: Int, size: Int): Unit = Array.copy(numbers, from, numbers, to, size)
+  def copy(from: Int, to: Int, size: Int): Unit = java.lang.System.arraycopy(numbers, from, numbers, to, size)
 
   def obtainPos() = synchronized {
     val pos = nextFreePos
