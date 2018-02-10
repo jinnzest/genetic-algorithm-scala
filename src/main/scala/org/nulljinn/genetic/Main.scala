@@ -6,17 +6,24 @@ object Main:
   private val chromosomeGenesAmount = amountOfVariables * longBitsAmount
 
   private def createIncubator() =
-    val rand = new RandomUtilsPerfImpl(chromosomeGenesAmount)
+    val pools = AllPools(chromosomesAmount, amountOfVariables, longBitsAmount)
+    val rand = new RandomUtilsImpl(chromosomeGenesAmount, pools)
     val fitnessCalculator = new FitnessCalculator:
-      override def calcFitness(bits: Array[Long]): Double =
-        funcToFindGlobalExtremum(decodeBitsToNumbers(bits))
+      override def calcFitness(pos: Int): Double =
+        decodeBitsToNumbers(pos, pools.numbers)
+        -funcToFindGlobalExtremum(pos)
 
-      private def funcToFindGlobalExtremum(numbersList: Array[Long]): Double =
-        val res = numbersList.foldLeft(0L)((acc, v) => acc | v)
-        if res == 0 then 0 else 1
+      private def funcToFindGlobalExtremum(pos: Int): Double =
+        var p = 0
+        var prod = 1.0
+        while p < pools.numbers.numberLinesAmount do
+          val long = pools.numbers(pos + p)
+          prod += long
+          p += 1
+        prod
 
     new IndividualsIncubator(
-      chromosomesAmount, new Breeding(rand), fitnessCalculator
+      pools, new Breeding(rand), fitnessCalculator
     )
 
   private val generationsAmount = 100000
@@ -57,8 +64,11 @@ object Main:
     println("===================================================")
     println(s"min=\n${incubator.getWorstIndividual}")
     println(s"max=\n${incubator.getBestIndividual}\n")
-    val worst = decodeBitsToNumbers(incubator.getWorstIndividual.chromosome.decodeGenotype).mkString(", ")
+    val decodedArrayPos = incubator.getWorstIndividual.chromosome.decodeGenotype
+    decodeBitsToNumbers(decodedArrayPos, incubator.getBestIndividual.chromosome.allPools.numbers)
+    val worst = toStr(decodedArrayPos, incubator.getBestIndividual.chromosome.allPools.numbers)
     println(s"$worst")
-    val best = decodeBitsToNumbers(incubator.getBestIndividual.chromosome.decodeGenotype).mkString(", ")
+    decodeBitsToNumbers(incubator.getBestIndividual.chromosome.decodeGenotype, incubator.getBestIndividual.chromosome.allPools.numbers)
+    val best = toStr(decodedArrayPos, incubator.getBestIndividual.chromosome.allPools.numbers)
     println(s"$best\n\n\n")
     println(s"genNum=$cnt")

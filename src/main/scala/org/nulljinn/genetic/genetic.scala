@@ -20,19 +20,18 @@ package object genetic:
     r ^= r >>> 1
     r
 
-  def decodeBitsToNumbers(numbers: Array[Long]): Array[Long] =
-    var p = 0
-    val decoded = numbers.clone()
-    while p < numbers.length do
-      decoded(p) = gray2bin(numbers(p))
-      p += 1
-    decoded
 
-  def toStr(numbers: Array[Long]): String =
+  def decodeBitsToNumbers(pos: Int, numbers: Numbers): Unit =
+    var p = 0
+    while p < numbers.numberLinesAmount do
+      numbers(pos + p) = gray2bin(numbers(pos + p))
+      p += 1
+
+  def toStr(pos: Int, numbers: Numbers): String =
     var p = 0
     var str = ""
-    while p < numbers.length do
-      str += numbers(p) + " "
+    while p < numbers.numberLinesAmount do
+      str += numbers(pos + p) + " "
       p += 1
     str
 

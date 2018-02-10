@@ -16,6 +16,6 @@ trait RandomUtils:
 
   def randGen(): Gen
 
-  def generateZygote(): Zygote
+  def generateZygote(pos: Int): Zygote
 
   def selectIndividualProbability(fitness: Double): Boolean

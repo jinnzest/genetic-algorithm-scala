@@ -1,10 +1,14 @@
 package org.nulljinn.genetic
 
-case class NumbersLine(numbers: Array[Long], size: Int):
-  def cloneLine(): NumbersLine = NumbersLine(numbers.clone(), size)
+class NumbersLine(var posLine: Int, var allPools: AllPools):
+
+  def copyBits(from: NumbersLine): NumbersLine =
+    allPools.numbers.copy(from.posLine, posLine, allPools.numbers.numberLinesAmount)
+    this
 
   def crossBits(from: NumbersLine, fromBit: Int, bitsAmount: Int, bidirectional: Boolean): Unit =
-    val nBitsAmount = if size - fromBit < bitsAmount then size - fromBit else bitsAmount
+    val lineBitsAmount = from.allPools.numbers.lineBitsAmount - fromBit
+    val nBitsAmount = if lineBitsAmount < bitsAmount then lineBitsAmount else bitsAmount
 
     val shiftFrom = fromBit % longBitsAmount
 
@@ -30,62 +34,64 @@ case class NumbersLine(numbers: Array[Long], size: Int):
 
     val toPresent = afterLastBit / longBitsAmount > 0 && shiftTo > 0 && pByteFrom != pByteTo
 
-    if (fromPresent) crossFirstNumber(shiftFrom, pByteFrom, from.numbers, firstBitsAmount, bidirectional)
+    if fromPresent then crossFirstNumber(shiftFrom, pByteFrom + posLine, pByteFrom + from.posLine, firstBitsAmount, bidirectional)
 
-    if fullBytesPresent then crossMiddleNumbers(from.numbers, fullBytesFrom, fullBytesTo, bidirectional)
+    if fullBytesPresent then crossMiddleNumbers(posLine, from.posLine, fullBytesTo, fullBytesFrom, bidirectional)
 
-    if toPresent then crossLastNumber(shiftTo, pByteTo, from.numbers, bidirectional)
+    if toPresent then crossLastNumber(shiftTo, pByteTo + posLine, pByteTo + from.posLine, bidirectional)
 
-  private def crossMiddleNumbers(numbersFrom: Array[Long], from: Int, to: Int, bidirectional: Boolean) =
-    from to to foreach : pos =>
-      val tmp = numbersFrom(pos)
-      if bidirectional then numbersFrom(pos) = numbers(pos)
-      numbers(pos) = tmp
+  private def crossMiddleNumbers(posTo: Int, posFrom: Int, to: Int, from: Int, bidirectional: Boolean) =
+    var pos = from
+    while pos <= to do
+      val posFromPos = posFrom + pos
+      val tmp = allPools.numbers(posFromPos)
+      val posToPos = posTo + pos
+      if bidirectional then allPools.numbers(posFromPos) = allPools.numbers(posToPos)
+      allPools.numbers(posToPos) = tmp
+      pos += 1
 
-  private def crossFirstNumber(fromBit: Int, pos: Int, numbersFrom: Array[Long], bitsAmount: Int, bidirectional: Boolean) =
+  private def crossFirstNumber(fromBit: Int, posTo: Int, posFrom: Int, bitsAmount: Int, bidirectional: Boolean) =
     val mask = (-1L >>> (longBitsAmount - bitsAmount)) << fromBit
-    val numFrom = numbersFrom(pos)
-    val numTo = numbers(pos)
+    val numFrom = allPools.numbers(posFrom)
+    val numTo = allPools.numbers(posTo)
     val maskedTo = numTo & mask
     val maskedFrom = numFrom & mask
-    numbers(pos) = numTo & ~mask | maskedFrom
-    if bidirectional then numbersFrom(pos) = numFrom & ~mask | maskedTo
+    allPools.numbers(posTo) = numTo & ~mask | maskedFrom
+    if bidirectional then allPools.numbers(posFrom) = numFrom & ~mask | maskedTo
 
-  private def crossLastNumber(bitsAmount: Int, pos: Int, numbersFrom: Array[Long], bidirectional: Boolean) =
+  private def crossLastNumber(bitsAmount: Int, posTo: Int, posFrom: Int, bidirectional: Boolean) =
     val mask = -1L >>> (longBitsAmount - bitsAmount)
-    val numFrom = numbersFrom(pos)
-    val numTo = numbers(pos)
+    val numFrom = allPools.numbers(posFrom)
+    val numTo = allPools.numbers(posTo)
     val lastMaskedFrom = numFrom & mask
     val lastMaskedTo = numTo & mask
-    numbers(pos) = numTo & ~mask | lastMaskedFrom
-    if bidirectional then numbersFrom(pos) = numFrom & ~mask | lastMaskedTo
+    allPools.numbers(posTo) = numTo & ~mask | lastMaskedFrom
+    if bidirectional then allPools.numbers(posFrom) = numFrom & ~mask | lastMaskedTo
 
   override def toString: String =
-    var p = numbers.length - 1
+    var p = allPools.numbers.numberLinesAmount - 1
     var str = ""
     while p >= 0 do
-      str += toBinary(numbers(p)) + " "
+      str += toBinary(allPools.numbers(posLine + p)) + " "
       p -= 1
     str.trim
 
-  def update(pos: Int, v: Boolean): Unit = if (v) setBit(pos) else clearBit(pos)
+  def update(pos: Int, v: Boolean): Unit = if v then setBit(pos) else clearBit(pos)
 
-  def apply(pos: Int): Boolean = (numbers(pos / longBitsAmount) & numberMask(pos)) != 0
+  def apply(pos: Int): Boolean = (allPools.numbers(posLine + pos / longBitsAmount) & numberMask(pos)) != 0
 
-  def getNumber(pos: Int): Long = numbers(pos / longBitsAmount)
+  def getNumber(pos: Int): Long = allPools.numbers(pos / longBitsAmount)
 
-  private def setBit(pos: Int) = numbers(pos / longBitsAmount) |= numberMask(pos)
+  private def setBit(pos: Int) = allPools.numbers(posLine + pos / longBitsAmount) |= numberMask(pos)
 
-  private def clearBit(pos: Int) = numbers(pos / longBitsAmount) &= ~numberMask(pos)
+  private def clearBit(pos: Int) = allPools.numbers(posLine + pos / longBitsAmount) &= ~numberMask(pos)
 
 object NumbersLine:
-  def apply(str: String): NumbersLine =
+  def apply(str: String, posLine: Int, allPools: AllPools): NumbersLine =
     val normalizedStr = str.filter(_ != ' ')
-    val length = normalizedStr.length
-    val len = length / longBitsAmount
-    val nLen = len + (if (length % longBitsAmount > 0) 1 else 0)
-    val line = NumbersLine(Array.fill(nLen)(0), length)
-    val positions = 0 until length
+    val line = allPools.numberLines.next()
+    line.posLine = posLine
+    val positions = 0 until normalizedStr.length
     normalizedStr.zip(positions.reverse).foreach:
       case ('1', p) => line(p) = true
       case ('0', p) => line(p) = false

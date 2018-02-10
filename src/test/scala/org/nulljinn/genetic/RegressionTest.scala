@@ -1,5 +1,6 @@
 package org.nulljinn.genetic
 
+import org.scalatest.Assertion
 import org.scalatest.wordspec.AnyWordSpec
 
 class RegressionTest extends AnyWordSpec:
@@ -7,7 +8,7 @@ class RegressionTest extends AnyWordSpec:
   private val genesAmount = longBitsAmount * varsAmount
   private val chromosomesAmount = 5
 
-  class RandomUtilsMock(val chromosomeGenesAmount: Int, genFrom: Gen, genTo: Gen) extends RandomUtils:
+  class RandomUtilsMock(val chromosomeGenesAmount: Int, genFrom: Gen, genTo: Gen, allPools: AllPools) extends RandomUtils:
     private var pos = 0
     private var mutatedChromosomes = 0
 
@@ -29,27 +30,39 @@ class RegressionTest extends AnyWordSpec:
 
     override def randGen(): Gen = genTo
 
-    override def selectIndividualProbability(fitness: Double): Boolean = if fitness >= 0.5 then true else false
+    override def selectIndividualProbability(fitness: Double): Boolean = if (fitness >= 0.5) true else false
 
-    override def generateZygote(): Zygote = Zygote((0 until chromosomeGenesAmount).map(_ => genFrom.toChar).mkString)
+    override def generateZygote(pos: Int): Zygote = Zygote((0 until chromosomeGenesAmount).map(_ => genFrom.toChar).mkString, pos, allPools)
 
-  private def runGenerations(genFrom: Gen, genTo: Gen, sign: Int) =
-    def allChromosomesAreDegenerated(chromosomes: Array[Chromosome]) =
+  private def runGenerations(genFrom: Gen, genTo: Gen, sign: Int): Int =
+    val pools = AllPools(chromosomesAmount, varsAmount, longBitsAmount)
+
+    def allChromosomesAreDegenerated(chromosomes: Array[Chromosome]): Boolean =
       chromosomes.forall(_.toString.filter(v => v != ' ').split('\n')(0).forall(_ == genTo.toChar))
 
-    def checkNoUnexpectedGenesAppeared(chromosomes: Array[Chromosome]) =
+    def checkNoUnexpectedGenesAppeared(chromosomes: Array[Chromosome]): Array[IndexedSeq[Assertion]] =
       chromosomes.map:
-        _.toString.filter(_ != ' ').split('\n')(0).map: g =>
+        _.toString.filter(v => v != ' ').split('\n')(0).map: g =>
           assert(g == genTo.toChar || g == genFrom.toChar)
 
     val fitnessCalculator = new FitnessCalculator:
-      override def calcFitness(bits: Array[Long]): Double = sign * bits.foldLeft(0.0): (acc, v) =>
-        java.lang.Long.bitCount(v) + acc
+      override def calcFitness(pos: Int): Double =
+        var p = 0
+        var acc = 0.0
+        while p < pools.numbers.numberLinesAmount do
+          var bitMask = 1L
+          val v = pools.numbers(pos + p)
+          acc += (0 until longBitsAmount).foldLeft(0.0): (acc2, _) =>
+            val res = acc2 + (if ((v & bitMask) != 0) 1 else 0)
+            bitMask <<= 1L
+            res
+          p += 1
+        sign * acc
 
-    val rand = new RandomUtilsMock(genesAmount, genFrom, genTo)
-
+    val rand = new RandomUtilsMock(genesAmount, genFrom, genTo, pools)
+    pools.numbers.swapGenerations()
     val incubator = new IndividualsIncubator(
-      chromosomesAmount, new Breeding(rand), fitnessCalculator
+      pools, new Breeding(rand), fitnessCalculator
     )
     var genCnt = 0
     while !allChromosomesAreDegenerated(incubator.getChromosomes) do

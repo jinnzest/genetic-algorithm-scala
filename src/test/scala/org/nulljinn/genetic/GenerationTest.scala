@@ -8,32 +8,33 @@ class GenerationTest extends AnyWordSpec:
 
   "Generation" when :
     "selecting new parent pairs" should :
-      val chr = Chromosome("", "")
+      val allPools = AllPools(10, 1, 2)
+      val chr = Chromosome.apply("", "", allPools)
       "find exactly the same amount of pairs as initial generation size" in :
         val size = 5
-        val individuals = Array.fill(size)(Individual(0.5, chr))
+        val individuals = Array.fill(size)(new Individual(0.5, chr, allPools))
         val result = Generation(individuals, defaultCanBreedMock).selectParentPairs()
         assert(result.length == size)
 
       "find only parents which are selected by canBreedMock function" in :
         val size = 6
-        val canBreedMock: (Double, Double, Double) => Boolean = (f, _, _) => if f > 0.5 then true else false
-        val bestIndividuals = Array.fill(size / 2)(Individual(1, chr))
-        val worstIndividuals = Array.fill(size / 2)(Individual(0, chr))
+        val canBreedMock: (Double, Double, Double) => Boolean = (f, _, _) => if (f > 0.5) true else false
+        val bestIndividuals = Array.fill(size / 2)(new Individual(1, chr, allPools))
+        val worstIndividuals = Array.fill(size / 2)(new Individual(0, chr, allPools))
         val mergedIndividuals = bestIndividuals ++ worstIndividuals
         val result = Generation(mergedIndividuals, canBreedMock).selectParentPairs()
-        val bestParents = result.filter: (firstParent, secondParent) =>
-          firstParent.fitness > 0.5 && secondParent.fitness > 0.5
+        val bestParents = result.filter: parents =>
+          parents.firstParent.fitness > 0.5 && parents.secondParent.fitness > 0.5
 
-        val worstParents = result.filter: (firstParent, secondParent) =>
-          firstParent.fitness < 0.5 || secondParent.fitness < 0.5
+        val worstParents = result.filter: parents =>
+          parents.firstParent.fitness < 0.5 || parents.secondParent.fitness < 0.5
 
         assert(bestParents.length == size)
         assert(worstParents.isEmpty)
 
       "make worstIndividual to be equal to worst individual from generation" in :
         val size = 5
-        val individuals = Array.fill(size)(Individual(0.5, chr))
-        val worstIndividual = Individual(0.0, chr)
+        val individuals = Array.fill(size)(new Individual(0.5, chr, allPools))
+        val worstIndividual = new Individual(0.0, chr, allPools)
         val foundWorstIndividual = Generation(individuals :+ worstIndividual, defaultCanBreedMock).findWorstIndividual()
         assert(foundWorstIndividual == worstIndividual)
