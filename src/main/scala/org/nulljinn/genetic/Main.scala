@@ -11,7 +11,7 @@ object Main {
       override def calcFitness(bits: Array[Boolean]): Double =
         funcToFindGlobalExtremum(decodeBitsToNumbers(bits))
 
-      private def funcToFindGlobalExtremum(numbersList: Array[Long]) = numbersList.map(_.toDouble).sum
+      private def funcToFindGlobalExtremum(numbersList: Array[Long]): Double = numbersList.map(_.toDouble).sum
     }
     new IndividualsIncubator(
       chromosomesAmount, new Breeding(rand), fitnessCalculator
@@ -21,12 +21,11 @@ object Main {
   private val generationsAmount = 100000
 
   def main(args: Array[String]): Unit = {
-    //    printIntermediateResults(runGenerationsForFitness(-1))
     printIntermediateResults(runGenerationsForCount(generationsAmount))
   }
 
   private def runGenerationsForCount(genesNum: Int): (IndividualsIncubator, Int) = {
-    heating()
+    warmingUp()
     val incubator = createIncubator()
     var mark = System.currentTimeMillis()
     1 to genesNum foreach { _ =>
@@ -37,19 +36,19 @@ object Main {
     (incubator, genesNum)
   }
 
-  private def heating() = {
-    println("starting heating...")
+  private def warmingUp(): Unit = {
+    println("starting warming up ...")
     val incubator = createIncubator()
     1 to 10000 foreach { _ =>
       incubator.makeNextGeneration()
     }
-    println("heating is done")
+    println("warming up is done")
     println("sleeping for 5 sec to allow GC to clean up memory")
     Thread.sleep(5000)
     println("running 100.000 generations...")
   }
 
-  private def runGenerationsForFitness(finalFitness: Int) = {
+  private def runGenerationsForFitness(finalFitness: Int): Int = {
     var genCount = 0
     val incubator = createIncubator()
     while (incubator.getBestIndividual.fitness != finalFitness) {
@@ -60,7 +59,7 @@ object Main {
     genCount
   }
 
-  private def printIntermediateResults(data: (IndividualsIncubator, Int)) = {
+  private def printIntermediateResults(data: (IndividualsIncubator, Int)): Unit = {
     val (incubator, cnt) = data
     println("===================================================")
     println(s"min=\n${incubator.getWorstIndividual}")

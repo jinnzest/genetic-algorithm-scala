@@ -1,6 +1,11 @@
 package org.nulljinn.genetic
 
-class GenerationTest extends TestsBase {
+import org.scalacheck.Gen.nonEmptyListOf
+import org.scalatest.wordspec.AnyWordSpec
+import org.scalatestplus.scalacheck.ScalaCheckPropertyChecks.forAll
+import org.scalacheck.{Gen => SCGen}
+
+class GenerationTest extends AnyWordSpec {
 
   val defaultCanBreedMock: (Double, Double, Double) => Boolean = (_, _, _) => true
 
@@ -11,11 +16,11 @@ class GenerationTest extends TestsBase {
         val size = 5
         val individuals = Array.fill(size)(Individual(0.5, chr))
         val result = Generation(individuals, defaultCanBreedMock).selectParentPairs()
-        result.length mustBe size
+        assert(result.length == size)
       }
       "find only parents which are selected by canBreedMock function" in {
         val size = 6
-        val canBreedMock: (Double, Double, Double) => Boolean = (f, min, max) => if (f > 0.5) true else false
+        val canBreedMock: (Double, Double, Double) => Boolean = (f, _, _) => if (f > 0.5) true else false
         val bestIndividuals = Array.fill(size / 2)(Individual(1, chr))
         val worstIndividuals = Array.fill(size / 2)(Individual(0, chr))
         val mergedIndividuals = bestIndividuals ++ worstIndividuals
@@ -28,29 +33,27 @@ class GenerationTest extends TestsBase {
           val (fstParent, scndParent) = parents
           fstParent.fitness < 0.5 || scndParent.fitness < 0.5
         }
-        bestParents.length mustBe size
-        worstParents mustBe empty
+        assert(bestParents.length == size)
+        assert(worstParents.isEmpty)
       }
       "make worstIndividual to be equal to worst individual from generation" in {
         val size = 5
         val individuals = List.fill(size)(Individual(0.5, chr))
         val worstIndividual = Individual(0.0, chr)
         val foundWorstIndividual = Generation((worstIndividual :: individuals).toArray, defaultCanBreedMock).findWorstIndividual()
-        foundWorstIndividual mustBe worstIndividual
+        assert(foundWorstIndividual == worstIndividual)
       }
       "make worstIndividual to be bigger than worst individual if fitness of the last one is worst 20 times then the overage by generation" in {
         val worseButBetterThatWorst = Individual(1001, chr)
         val individuals = worseButBetterThatWorst :: Individual(1002, chr) :: Individual(1003, chr) :: Individual(1004, chr) ::
           Individual(1, chr) :: Nil
         val foundWorstIndividual = Generation(individuals.toArray, defaultCanBreedMock).findWorstIndividual()
-        foundWorstIndividual mustBe worseButBetterThatWorst
+        assert(foundWorstIndividual == worseButBetterThatWorst)
       }
-      "get overage fitness of generation" in forAll { (fitnesses: List[Double]) =>
-        if (fitnesses.nonEmpty) {
-          val individuals = fitnesses.map(f => Individual(f, chr))
-          val foundOverageFitness = Generation(individuals.toArray, defaultCanBreedMock).overageFitness
-          foundOverageFitness mustBe (fitnesses.sum / fitnesses.size)
-        }
+      "get overage fitness of generation" in forAll(nonEmptyListOf(SCGen.double)) { (individualsFitness: List[Double]) =>
+        val individuals = individualsFitness.map(f => Individual(f, chr))
+        val foundOverageFitness = Generation(individuals.toArray, defaultCanBreedMock).overageFitness
+        assert(foundOverageFitness == (individualsFitness.sum / individualsFitness.size))
       }
     }
   }

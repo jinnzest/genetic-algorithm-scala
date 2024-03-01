@@ -1,8 +1,8 @@
 package org.nulljinn.genetic
 
-import org.scalatest.{FreeSpec, MustMatchers}
+import org.scalatest.wordspec.AnyWordSpec
 
-class RegressionTest extends FreeSpec with MustMatchers {
+class RegressionTest extends AnyWordSpec {
   private val varsAmount = 3
   private val genesAmount = longBitsAmount * varsAmount
   private val chromosomesAmount = 5
@@ -36,13 +36,6 @@ class RegressionTest extends FreeSpec with MustMatchers {
     override def generateZygote(): Zygote = Zygote((0 until chromosomeGenesAmount).map(_ => genFrom.toChar).mkString)
   }
 
-  "Breeding new generations should replace all genes by defined ones during a few generations" in {
-    runGenerations(Gen('d'), Gen('D'), 1) mustBe 230
-    runGenerations(Gen('r'), Gen('R'), 1) mustBe 230
-    runGenerations(Gen('R'), Gen('d'), -1) mustBe 230
-    runGenerations(Gen('r'), Gen('D'), 1) mustBe 230
-  }
-
   private def runGenerations(genFrom: Gen, genTo: Gen, sign: Int) = {
     def allChromosomesAreDegenerated(chromosomes: Array[Chromosome]) = {
       chromosomes.forall(_.toString.filter(v => v != ' ').split('\n')(0).forall(_ == genTo.toChar))
@@ -50,7 +43,7 @@ class RegressionTest extends FreeSpec with MustMatchers {
 
     def checkNoUnexpectedGenesAppeared(chromosomes: Array[Chromosome]) = {
       chromosomes.map {
-        _.toString.filter(v => v != ' ').split('\n')(0).map { g =>
+        _.toString.filter(_ != ' ').split('\n')(0).map { g =>
           assert(g == genTo.toChar || g == genFrom.toChar)
         }
       }
@@ -66,22 +59,19 @@ class RegressionTest extends FreeSpec with MustMatchers {
     val incubator = new IndividualsIncubator(
       chromosomesAmount, new Breeding(rand), fitnessCalculator
     )
-    //    val fileWriter = new FileWriter("result.txt")
-    //    def write(genCnt: Int) = {
-    //      fileWriter.write(genCnt.toString)
-    //      fileWriter.write(" : \n")
-    //      fileWriter.write(incubator.getChromosomes.foldLeft("") { (acc, v) =>
-    //        acc + v.dZygote.toString + "\n"
-    //      })
-    //      fileWriter.write("\n\n")
-    //    }
     var genCnt = 0
     while (!allChromosomesAreDegenerated(incubator.getChromosomes)) {
       checkNoUnexpectedGenesAppeared(incubator.getChromosomes)
       incubator.makeNextGeneration()
       genCnt += 1
-      //      write(genCnt)
     }
     genCnt
+  }
+
+  "Breeding new generations should replace all genes by defined ones during a few generations" in {
+    assert(runGenerations(Gen('d'), Gen('D'), 1) == 230)
+    assert(runGenerations(Gen('r'), Gen('R'), 1) == 230)
+    assert(runGenerations(Gen('R'), Gen('d'), -1) == 230)
+    assert(runGenerations(Gen('r'), Gen('D'), 1) == 230)
   }
 }

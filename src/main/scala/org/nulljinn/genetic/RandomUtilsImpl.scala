@@ -6,7 +6,7 @@ import org.nulljinn.genetic.Gen._
 
 class RandomUtilsImpl(val chromosomeGenesAmount: Int) extends RandomUtils {
 
-  private val mutationProbability =  chromosomeGenesAmount / 10000.0
+  private val mutationProbability = chromosomeGenesAmount / 10000.0
   private val crossProbability = 2 * chromosomeGenesAmount / 1000000.0
 
   //  private val rand = new SecureRandom() //TODO find a way to make it faster

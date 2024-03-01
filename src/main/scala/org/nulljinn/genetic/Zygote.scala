@@ -5,7 +5,7 @@ import org.nulljinn.genetic.Gen._
 case class Zygote(genes: Array[Gen]) {
 
   def mutate(pos: Int, newGen: Gen): Zygote = {
-    val newGenes:Array[Gen] = genes.updated(pos, newGen)
+    val newGenes: Array[Gen] = genes.updated(pos, newGen)
     Zygote(newGenes)
   }
 

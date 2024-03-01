@@ -2,12 +2,16 @@ package org.nulljinn.genetic
 
 import org.nulljinn.genetic.Gen._
 import org.scalacheck.{Gen => SCGen}
+import org.scalatest.wordspec.AnyWordSpec
+import org.scalatestplus.scalacheck.ScalaCheckPropertyChecks.forAll
 
-class ZygoteTest extends TestsBase {
+class ZygoteTest extends AnyWordSpec {
 
   private val chromosomeGenesAmount = 100
 
   private def generateZygote() = new RandomUtilsPerfImpl(chromosomeGenesAmount).generateZygote()
+
+  private def normalizeGenesStr(s: String) = s.filter(_ != ' ').reverse
 
   "Zygote" when {
     val genGen = org.scalacheck.Gen.oneOf(D1, D0, R1, R0)
@@ -19,28 +23,35 @@ class ZygoteTest extends TestsBase {
 
         val initialGenesStr = normalizeGenesStr(zygote.toString)
         val mutatedGenesStr = normalizeGenesStr(mutatedZygote.toString)
-        initialGenesStr.zip(mutatedGenesStr).foldLeft(0) { (acc, pair) =>
-          val (f, t) = pair
-          if (acc != mutPos) f mustBe t
-          acc + 1
-        }
+        assert(initialGenesStr.zip(mutatedGenesStr).zipWithIndex.forall { pair =>
+          val ((initial, mutated), pos) = pair
+          if (pos == mPos) {
+            true
+          } else {
+            initial == mutated
+          }
+        })
       }
       "modify gen defined by pos" in forAll(genGen, SCGen.posNum[Int]) { (g, mPos) =>
         val mutPos = mPos % chromosomeGenesAmount
         val zygote = generateZygote()
         val mutatedZygote = zygote.mutate(mutPos, g)
 
-        normalizeGenesStr(mutatedZygote.toString).foldLeft(0) { (acc, t) =>
-          if (acc == mutPos) t mustBe g.toChar
-          acc + 1
-        }
+        assert(normalizeGenesStr(mutatedZygote.toString).zipWithIndex.forall { pair =>
+          val (gen, pos) = pair
+          if (pos == mutPos) {
+            gen == g.toChar
+          } else {
+            true
+          }
+        })
       }
       "keep size" in forAll(genGen, SCGen.posNum[Int]) { (g, mPos) =>
         val mutPos = mPos % chromosomeGenesAmount
         val zgt = generateZygote()
         val crossedZygote = zgt.mutate(mutPos, g)
 
-        zgt.toString.length mustBe crossedZygote.toString.length
+        assert(zgt.toString.length == crossedZygote.toString.length)
       }
     }
     "cross" should {
@@ -51,22 +62,20 @@ class ZygoteTest extends TestsBase {
         val zgt2 = generateZygote()
         val crossedZygote = zgt.cross(zgt2, bgnPosition, endPosition)
 
-        zgt.toString.length mustBe crossedZygote.toString.length
+        assert(zgt.toString.length == crossedZygote.toString.length)
       }
       "cross parts" in {
         val zgt1 = Zygote("dddd dddd dddd")
         val zgt2 = Zygote("rrrr rrrr rrrr")
         val crossed = zgt1.cross(zgt2, 3, 4)
-        crossed.toString mustBe "dddd drrr rddd"
+        assert(crossed.toString == "dddd drrr rddd")
       }
       "cross parts when end pos bigger than size" in {
         val zgt1 = Zygote("dddd dddd dddd")
         val zgt2 = Zygote("rrrr rrrr rrrr")
         val crossed = zgt1.cross(zgt2, 3, 21)
-        crossed.toString mustBe "rrrr rrrr rddd"
+        assert(crossed.toString == "rrrr rrrr rddd")
       }
     }
   }
-
-  private def normalizeGenesStr(s: String) = s.filter(_ != ' ').reverse
 }

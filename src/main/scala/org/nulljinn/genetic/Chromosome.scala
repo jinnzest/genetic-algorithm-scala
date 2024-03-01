@@ -1,13 +1,12 @@
 package org.nulljinn.genetic
 
 import org.nulljinn.genetic.Gen._
-import scala.collection.breakOut
 
 case class Chromosome(dZygote: Zygote, rZygote: Zygote) {
 
   def decodeGenotype: Array[Boolean] = dZygote.genes.zip(rZygote.genes).map(
     Chromosome.decodingRules.apply
-  )(breakOut)
+  )
 
   def crossZygotes(begin: Int, end: Int): Chromosome =
     Chromosome(dZygote.cross(rZygote, begin, end), rZygote.cross(dZygote, begin, end))

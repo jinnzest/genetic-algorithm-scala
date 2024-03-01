@@ -13,12 +13,12 @@ class Breeding(rand: RandomUtils) {
       )
     )
 
-  private def attemptCrossZygotes(chr: Chromosome) =
+  private def attemptCrossZygotes(chr: Chromosome): Chromosome =
     if (rand.shouldCrossZygotes())
       chr.crossZygotes(rand.crossingZygotePos(), rand.crossingZygotePos() + 1)
     else chr
 
-  private def attemptMutate(chr: Chromosome) =
+  private def attemptMutate(chr: Chromosome): Chromosome =
     if (rand.shouldMutate())
       chr.mutate(rand.mutationPos(), rand.randGen())
     else chr

@@ -6,7 +6,7 @@ One of the goals of the researching is to understand how functional style of pro
 CPU of the computer used to run measurement: Intel Core i5-4460 @ 3.2 GHz.
 OS: Linux Ubuntu 17, kernel 4.13.0-17
 
-To try it yourself run: sbt clean pack && ./target/pack/bin/main.
+To try it yourself run: `sbt clean assembly` && `java -jar ./target/scala-2.13/genetic-algorithm`.
 
 Optimization steps and measurements: 
 

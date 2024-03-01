@@ -25,7 +25,7 @@ case class Generation(individuals: Array[Individual], canBreed: (Double, Double,
     parents.map(_.get)
   }
 
-  private def findParentPos() = {
+  private def findParentPos(): Int = {
     var foundParentPos = -1
     while (foundParentPos == -1) {
       val candidate = individuals(pos)
