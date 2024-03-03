@@ -1,51 +1,52 @@
 package org.nulljinn.genetic
 
-import org.nulljinn.genetic.Gen._
-
 case class Chromosome(dZygote: Zygote, rZygote: Zygote) {
 
-  def decodeGenotype: Array[Boolean] = dZygote.genes.zip(rZygote.genes).map(
-    Chromosome.decodingRules.apply
-  )
+  private lazy val length: Int = dZygote.dominance.numbers.length
 
-  def crossZygotes(begin: Int, end: Int): Chromosome =
-    Chromosome(dZygote.cross(rZygote, begin, end), rZygote.cross(dZygote, begin, end))
+  def decodeGenotype: Array[Long] = {
+    var p = 0
+    val decoded = Array.fill(length)(0L)
+    while (p < decoded.length) {
+      val dd = dZygote.dominance.numbers(p)
+      val dv = dZygote.values.numbers(p)
+      val rd = rZygote.dominance.numbers(p)
+      val rv = rZygote.values.numbers(p)
+      decoded(p) = dv & ~rd | rd & rv & ~dd | dd & dv
+      p += 1
+    }
+    decoded
+  }
 
-  def crossChromosomes(chr: Chromosome, begin: Int, end: Int): Chromosome =
-    Chromosome(
-      dZygote.cross(chr.dZygote, begin, end),
-      rZygote.cross(chr.rZygote, begin, end)
-    )
+  def crossZygotes(begin: Int, amount: Int): Chromosome = {
+    val normalizedAmount = if (begin + amount < dZygote.values.size) amount else length - begin
+    dZygote.cross(rZygote, begin, normalizedAmount, true)
+    this
+  }
 
-  def mutate(pos: Int, newGen: Gen): Chromosome =
-    Chromosome(dZygote.mutate(pos, newGen), rZygote)
+  def crossChromosomes(chr: Chromosome, begin: Int, amount: Int): Chromosome = {
+    val newChr = cloneChr()
+    newChr.dZygote.cross(chr.dZygote, begin, amount, false)
+    newChr.rZygote.cross(chr.rZygote, begin, amount, false)
+    newChr
+  }
+
+  private def cloneChr(): Chromosome = {
+    val newDZygote = dZygote.cloneZygote()
+    val newRZygote = rZygote.cloneZygote()
+    Chromosome(newDZygote, newRZygote)
+  }
+
+  def mutate(pos: Int, newGen: Gen): Chromosome = {
+    dZygote.mutate(pos, newGen)
+    this
+  }
 
   override def toString: String = dZygote.toString + "\n" + rZygote.toString
 }
 
 object Chromosome {
-  private val decodingRules = Map[(Gen, Gen), Boolean](
-    (D1, D0) -> true,
-    (D1, D1) -> true,
-    (D1, R1) -> true,
-    (D1, R0) -> true,
-
-    (D0, D0) -> false,
-    (D0, D1) -> false,
-    (D0, R1) -> false,
-    (D0, R0) -> false,
-
-    (R1, D0) -> false,
-    (R1, D1) -> true,
-    (R1, R1) -> true,
-    (R1, R0) -> true,
-
-    (R0, D0) -> false,
-    (R0, D1) -> true,
-    (R0, R1) -> false,
-    (R0, R0) -> false
-  )
-
-  def apply(z1: String, z2: String): Chromosome = Chromosome(Zygote(z1), Zygote(z2))
+  def apply(z1: String, z2: String): Chromosome =
+    Chromosome(Zygote(z1), Zygote(z2))
 }
 

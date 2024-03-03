@@ -14,7 +14,17 @@ class RandomUtilsImpl(val chromosomeGenesAmount: Int) extends RandomUtils {
 
   override def selectIndividualProbability(fitness: Double): Boolean = fitness > rand.nextDouble()
 
-  def generateZygote() = new Zygote(Array.fill(chromosomeGenesAmount)(randGen()))
+  def generateZygote(): Zygote = {
+    val len = chromosomeGenesAmount / longBitsAmount
+    val nLen = len + (if (chromosomeGenesAmount % longBitsAmount > 0) 1 else 0)
+    val dLine = NumbersLine(Array.fill(nLen)(len), chromosomeGenesAmount)
+    val vLine = NumbersLine(Array.fill(nLen)(len), chromosomeGenesAmount)
+    0 to chromosomeGenesAmount - longBitsAmount foreach { p =>
+      dLine(p) = rand.nextBoolean()
+      vLine(p) = rand.nextBoolean()
+    }
+    new Zygote(dLine, vLine)
+  }
 
   override def randGen(): Gen = {
     rand.nextInt(4) match {

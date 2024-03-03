@@ -38,22 +38,22 @@ class GenerationTest extends AnyWordSpec {
       }
       "make worstIndividual to be equal to worst individual from generation" in {
         val size = 5
-        val individuals = List.fill(size)(Individual(0.5, chr))
+        val individuals = Array.fill(size)(Individual(0.5, chr))
         val worstIndividual = Individual(0.0, chr)
-        val foundWorstIndividual = Generation((worstIndividual :: individuals).toArray, defaultCanBreedMock).findWorstIndividual()
+        val foundWorstIndividual = Generation(individuals :+ worstIndividual, defaultCanBreedMock).findWorstIndividual()
         assert(foundWorstIndividual == worstIndividual)
       }
       "make worstIndividual to be bigger than worst individual if fitness of the last one is worst 20 times then the overage by generation" in {
         val worseButBetterThatWorst = Individual(1001, chr)
-        val individuals = worseButBetterThatWorst :: Individual(1002, chr) :: Individual(1003, chr) :: Individual(1004, chr) ::
-          Individual(1, chr) :: Nil
-        val foundWorstIndividual = Generation(individuals.toArray, defaultCanBreedMock).findWorstIndividual()
+        val individuals = Array(worseButBetterThatWorst, Individual(1002, chr), Individual(1003, chr), Individual(1004, chr),
+          Individual(1, chr))
+        val foundWorstIndividual = Generation(individuals, defaultCanBreedMock).findWorstIndividual()
         assert(foundWorstIndividual == worseButBetterThatWorst)
       }
-      "get overage fitness of generation" in forAll(nonEmptyListOf(SCGen.double)) { (individualsFitness: List[Double]) =>
+      "get overage fitness of generation" in forAll(nonEmptyListOf(SCGen.double)) { individualsFitness: List[Double] =>
         val individuals = individualsFitness.map(f => Individual(f, chr))
         val foundOverageFitness = Generation(individuals.toArray, defaultCanBreedMock).overageFitness
-        assert(foundOverageFitness == (individualsFitness.sum / individualsFitness.size))
+        assert(foundOverageFitness == (individualsFitness.sum / individualsFitness.length))
       }
     }
   }

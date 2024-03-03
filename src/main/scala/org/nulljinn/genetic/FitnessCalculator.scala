@@ -1,5 +1,5 @@
 package org.nulljinn.genetic
 
 trait FitnessCalculator {
-  def calcFitness(decodedGenotype: Array[Boolean]): Double
+  def calcFitness(decodedGenotype: Array[Long]): Double
 }

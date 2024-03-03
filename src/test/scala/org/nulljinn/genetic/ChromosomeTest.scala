@@ -14,18 +14,18 @@ class ChromosomeTest extends AnyWordSpec {
   "Chromosome" when {
     "decode first zygote with dominant genes" should {
       "always override recessive genes of second  zygote" in {
-        assert(Chromosome("DDdd", "RrRr").decodeGenotype sameElements toBoolArray("1100"))
+        assert(Chromosome("DDdd", "RrRr").decodeGenotype(0) == 0xC)
       }
       "always override dominant genes of second  zygote" in {
-        assert(Chromosome("DDdd", "DdDd").decodeGenotype sameElements toBoolArray("1100"))
+        assert(Chromosome("DDdd", "DdDd").decodeGenotype(0) == 0xC)
       }
     }
     "decode first zygote with recessive genes" should {
-      "always override recessive genes of second  zygote" in {
-        assert(Chromosome("RRrr", "RrRr").decodeGenotype sameElements toBoolArray("1100"))
+      "always override recessive genes of second zygote" in {
+        assert(Chromosome("RRrr", "RrRr").decodeGenotype(0) == 0xC)
       }
       "always be overridden by dominant genes of second zygote" in {
-        assert(Chromosome("RRrr", "DdDd").decodeGenotype sameElements toBoolArray("1010"))
+        assert(Chromosome("RRrr", "DdDd").decodeGenotype(0) == 0xA)
       }
     }
     "cross zygotes" should {

@@ -52,7 +52,18 @@ case class Generation(individuals: Array[Individual], canBreed: (Double, Double,
   }
 
   private def calcOverageFitness(): Double = {
-    val fitnessSum = individuals.map(_.fitness).sum
+    var p = 0
+    var fitnessSum = 0.0
+    while (p < individuals.length) {
+      fitnessSum += individuals(p).fitness
+      p += 1
+    }
     fitnessSum / individuals.length
+  }
+
+  override def toString = {
+    individuals.foldLeft("") { (acc, i) =>
+      acc + i + "\n"
+    }
   }
 }
