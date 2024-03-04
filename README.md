@@ -14,3 +14,5 @@ To try it yourself run: `sbt clean assembly` && `java -jar ./target/scala-2.13/g
 Optimization steps and measurements: 
 
 1. Without optimization it runs 100000 generations for about 5797327 ms (~ 96 minutes)
+2. Array[Gen] is replaced by Array[Long], : 99853 ms, ~ 58 times faster than initial one
+
