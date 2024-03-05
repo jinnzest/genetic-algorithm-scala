@@ -17,3 +17,4 @@ Optimization steps and measurements:
 2. Array[Gen] is replaced by Array[Long], : 99853 ms, ~ 58 times faster than initial one
 3. Gray code is optimized: 64225 ms, ~ 90 times faster than initial one
 4. Move all objects to pools to reuse them: 29444 ms, ~196 times faster than initial one
+5. Replace Random by ThreadLocalRandom: 23844 ms, ~243 times faster than initial one
