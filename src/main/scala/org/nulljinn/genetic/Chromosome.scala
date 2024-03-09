@@ -1,8 +1,8 @@
 package org.nulljinn.genetic
 
-import org.nulljinn.genetic.Gen._
+import org.nulljinn.genetic.Gen.*
 
-case class Chromosome(dZygote: Zygote, rZygote: Zygote) {
+case class Chromosome(dZygote: Zygote, rZygote: Zygote):
 
   def decodeGenotype: Array[Boolean] = dZygote.genes.zip(rZygote.genes).map(
     Chromosome.decodingRules.apply
@@ -21,9 +21,8 @@ case class Chromosome(dZygote: Zygote, rZygote: Zygote) {
     Chromosome(dZygote.mutate(pos, newGen), rZygote)
 
   override def toString: String = dZygote.toString + "\n" + rZygote.toString
-}
 
-object Chromosome {
+object Chromosome:
   private val decodingRules = Map[(Gen, Gen), Boolean](
     (D1, D0) -> true,
     (D1, D1) -> true,
@@ -47,5 +46,3 @@ object Chromosome {
   )
 
   def apply(z1: String, z2: String): Chromosome = Chromosome(Zygote(z1), Zygote(z2))
-}
-

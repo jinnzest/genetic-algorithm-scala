@@ -1,9 +1,9 @@
 package org.nulljinn.genetic
 
+import org.scalacheck.Gen as SCGen
 import org.scalacheck.Gen.nonEmptyListOf
 import org.scalatest.wordspec.AnyWordSpec
 import org.scalatestplus.scalacheck.ScalaCheckPropertyChecks.forAll
-import org.scalacheck.{Gen => SCGen}
 
 class GenerationTest extends AnyWordSpec {
 
@@ -20,17 +20,15 @@ class GenerationTest extends AnyWordSpec {
       }
       "find only parents which are selected by canBreedMock function" in {
         val size = 6
-        val canBreedMock: (Double, Double, Double) => Boolean = (f, _, _) => if (f > 0.5) true else false
+        val canBreedMock: (Double, Double, Double) => Boolean = (f, _, _) => if f > 0.5 then true else false
         val bestIndividuals = Array.fill(size / 2)(Individual(1, chr))
         val worstIndividuals = Array.fill(size / 2)(Individual(0, chr))
         val mergedIndividuals = bestIndividuals ++ worstIndividuals
         val result = Generation(mergedIndividuals, canBreedMock).selectParentPairs()
-        val bestParents = result.filter { parents =>
-          val (fstParent, scndParent) = parents
+        val bestParents = result.filter { (fstParent, scndParent) =>
           fstParent.fitness > 0.5 && scndParent.fitness > 0.5
         }
-        val worstParents = result.filter { parents =>
-          val (fstParent, scndParent) = parents
+        val worstParents = result.filter { (fstParent, scndParent) =>
           fstParent.fitness < 0.5 || scndParent.fitness < 0.5
         }
         assert(bestParents.length == size)

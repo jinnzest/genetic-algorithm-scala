@@ -1,6 +1,6 @@
 package org.nulljinn.genetic
 
-trait RandomUtils {
+trait RandomUtils:
 
   def chromosomeGenesAmount: Int
 
@@ -19,4 +19,3 @@ trait RandomUtils {
   def generateZygote(): Zygote
 
   def selectIndividualProbability(fitness: Double): Boolean
-}

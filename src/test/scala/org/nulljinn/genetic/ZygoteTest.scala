@@ -1,7 +1,7 @@
 package org.nulljinn.genetic
 
-import org.nulljinn.genetic.Gen._
-import org.scalacheck.{Gen => SCGen}
+import org.nulljinn.genetic.Gen.*
+import org.scalacheck.Gen as SCGen
 import org.scalatest.wordspec.AnyWordSpec
 import org.scalatestplus.scalacheck.ScalaCheckPropertyChecks.forAll
 
@@ -25,11 +25,10 @@ class ZygoteTest extends AnyWordSpec {
         val mutatedGenesStr = normalizeGenesStr(mutatedZygote.toString)
         assert(initialGenesStr.zip(mutatedGenesStr).zipWithIndex.forall { pair =>
           val ((initial, mutated), pos) = pair
-          if (pos == mPos) {
+          if pos == mPos then
             true
-          } else {
+          else
             initial == mutated
-          }
         })
       }
       "modify gen defined by pos" in forAll(genGen, SCGen.posNum[Int]) { (g, mPos) =>
@@ -37,13 +36,11 @@ class ZygoteTest extends AnyWordSpec {
         val zygote = generateZygote()
         val mutatedZygote = zygote.mutate(mutPos, g)
 
-        assert(normalizeGenesStr(mutatedZygote.toString).zipWithIndex.forall { pair =>
-          val (gen, pos) = pair
-          if (pos == mutPos) {
+        assert(normalizeGenesStr(mutatedZygote.toString).zipWithIndex.forall { (gen, pos) =>
+          if pos == mutPos then
             gen == g.toChar
-          } else {
+          else
             true
-          }
         })
       }
       "keep size" in forAll(genGen, SCGen.posNum[Int]) { (g, mPos) =>

@@ -1,10 +1,10 @@
 package org.nulljinn.genetic
 
+import org.nulljinn.genetic.Gen.*
+
 import java.util.Random
 
-import org.nulljinn.genetic.Gen._
-
-class RandomUtilsImpl(val chromosomeGenesAmount: Int) extends RandomUtils {
+class RandomUtilsImpl(val chromosomeGenesAmount: Int) extends RandomUtils:
 
   private val mutationProbability = chromosomeGenesAmount / 10000.0
   private val crossProbability = 2 * chromosomeGenesAmount / 1000000.0
@@ -16,14 +16,12 @@ class RandomUtilsImpl(val chromosomeGenesAmount: Int) extends RandomUtils {
 
   def generateZygote() = new Zygote(Array.fill(chromosomeGenesAmount)(randGen()))
 
-  override def randGen(): Gen = {
-    rand.nextInt(4) match {
+  override def randGen(): Gen =
+    rand.nextInt(4) match
       case 0 => D1
       case 1 => D0
       case 2 => R1
       case 3 => R0
-    }
-  }
 
   private def randPos(): Int = rand.nextInt(chromosomeGenesAmount)
 
@@ -36,4 +34,3 @@ class RandomUtilsImpl(val chromosomeGenesAmount: Int) extends RandomUtils {
   override def shouldCrossZygotes(): Boolean = rand.nextDouble() < crossProbability
 
   override def shouldMutate(): Boolean = rand.nextDouble() < mutationProbability
-}

@@ -12,11 +12,10 @@ class RegressionTest extends AnyWordSpec {
     private var mutatedChromosomes = 0
 
     override def mutationPos(): Int = synchronized {
-      if (mutatedChromosomes == chromosomesAmount) {
+      if mutatedChromosomes == chromosomesAmount then
         mutatedChromosomes = 0
-        if (pos == chromosomeGenesAmount - 1) pos = 0
+        if pos == chromosomeGenesAmount - 1 then pos = 0
         else pos += 1
-      }
       else mutatedChromosomes += 1
       pos
     }
@@ -31,7 +30,7 @@ class RegressionTest extends AnyWordSpec {
 
     override def randGen(): Gen = genTo
 
-    override def selectIndividualProbability(fitness: Double): Boolean = if (fitness >= 0.5) true else false
+    override def selectIndividualProbability(fitness: Double): Boolean = if fitness >= 0.5 then true else false
 
     override def generateZygote(): Zygote = Zygote((0 until chromosomeGenesAmount).map(_ => genFrom.toChar).mkString)
   }
@@ -51,7 +50,7 @@ class RegressionTest extends AnyWordSpec {
 
     val fitnessCalculator = new FitnessCalculator {
       override def calcFitness(bits: Array[Boolean]): Double = sign * bits.foldLeft(0.0) { (acc, v) =>
-        if (v) acc + 1 else acc
+        if v then acc + 1 else acc
       }
     }
     val rand = new RandomUtilsMock(genesAmount, genFrom, genTo)

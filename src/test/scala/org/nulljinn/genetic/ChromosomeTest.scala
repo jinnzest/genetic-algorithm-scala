@@ -1,6 +1,6 @@
 package org.nulljinn.genetic
 
-import org.scalacheck.{Gen => SCGen}
+import org.scalacheck.Gen as SCGen
 import org.scalatest.wordspec.AnyWordSpec
 import org.scalatestplus.scalacheck.ScalaCheckPropertyChecks.forAll
 
