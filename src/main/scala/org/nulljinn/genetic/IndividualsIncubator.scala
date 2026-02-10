@@ -1,6 +1,6 @@
 package org.nulljinn.genetic
 
-class IndividualsIncubator(chromosomesAmount: Int, breeding: Breeding, fitnessCalculator: FitnessCalculator) {
+class IndividualsIncubator(chromosomesAmount: Int, breeding: Breeding, fitnessCalculator: FitnessCalculator):
   private var generation =
     Generation(
       Array.fill[Individual](chromosomesAmount)(generateIndividual),
@@ -16,11 +16,9 @@ class IndividualsIncubator(chromosomesAmount: Int, breeding: Breeding, fitnessCa
   def createIndividuals(): Array[Individual] =
     generation
       .selectParentPairs()
-      .map { parents =>
-        val (firstParent, secondParent) = parents
+      .map: (firstParent, secondParent) =>
         val newChromosome = breeding.conception(firstParent.chromosome, secondParent.chromosome)
         Individual(fitnessCalculator.calcFitness(newChromosome.decodeGenotype), newChromosome)
-      }
 
   def makeNextGeneration(): Unit =
     generation = Generation(
@@ -28,12 +26,10 @@ class IndividualsIncubator(chromosomesAmount: Int, breeding: Breeding, fitnessCa
       breeding.canBreed
     )
 
-  def generateIndividual: Individual = {
+  private def generateIndividual: Individual =
     val chromosome = breeding.generateChromosome()
     Individual(
       fitnessCalculator.calcFitness(chromosome.decodeGenotype), chromosome
     )
-  }
 
   def getChromosomes: Array[Chromosome] = generation.individuals.map(_.chromosome)
-}

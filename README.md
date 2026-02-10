@@ -1,13 +1,13 @@
-Researching of applying different performance optimizations while implementing a genetic algorithm. 
+Researching of applying different performance optimizations while implementing a genetic algorithm.
 Optimizations will be applied step by step and each improvement will be measured and compared to initial exec time.
-The initial version is written to follow functional programming idioms as much as possible. 
-One of the goals of the researching is to understand how functional style of programming in scala affects performance. 
+The initial version is written to follow functional programming idioms as much as possible.
+One of the goals of the researching is to compare it to scala implementation of the same algorithm.
 
-CPU of the computer used to run measurement: Intel Core i5-4460 @ 3.2 GHz.
-OS: Linux Ubuntu 17, kernel 4.13.0-17
+CPU of the computer used to run measurement: Intel(R) Core(TM) i9-10900K CPU @ 3.70GHz.
 
-To try it yourself run: sbt clean pack && ./target/pack/bin/main.
+OS: headless Linux nixos 6.12.63
 
-Optimization steps and measurements: 
+JDK: OpenJdk 21
 
-1. Without optimization it runs 100000 generations for about 12413058.75 ms (~ 206 minutes)
+To try it yourself run: `sbt clean assembly` && `java -jar ./target/scala-3.7.4/genetic-algorithm`
+

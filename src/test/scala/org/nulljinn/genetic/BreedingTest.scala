@@ -1,89 +1,94 @@
 package org.nulljinn.genetic
 
 import org.scalamock.scalatest.MockFactory
+import org.scalatest.wordspec.AnyWordSpec
+import org.scalatestplus.scalacheck.ScalaCheckPropertyChecks.forAll
 
-class BreedingTest extends TestsBase with MockFactory {
-  "Breeding" when {
-    "canBreed" should {
-      "forward calling canBreed to rand.selectIndividualProbability" in forAll { (breed: Boolean, f: Double, min: Double, max: Double) =>
+class BreedingTest extends AnyWordSpec with MockFactory:
+  "Breeding" when :
+    "canBreed" should :
+      "forward calling canBreed to rand.selectIndividualProbability" in forAll: (breed: Boolean, f: Double, min: Double, max: Double) =>
         val randMock = stub[RandomUtils]
-        (randMock.selectIndividualProbability _).when(*).returns(breed)
+        (x => randMock.selectIndividualProbability(x)).when(*).returns(breed)
         val result = new Breeding(randMock).canBreed(f, min, max)
-        result mustBe breed
-      }
-    }
-    "conception" should {
-      "mutate if doMutation returns true" in {
+        assert(result == breed)
+
+    "conception" should :
+      "mutate if doMutation returns true" in :
         val randMock = stub[RandomUtils]
-        (randMock.shouldMutate _).when.returns(true).once
+        (() => randMock.shouldMutate()).when().returns(true).once()
         val chr1 = stub[Chromosome]
         val chr2 = stub[Chromosome]
-        (chr1.crossChromosomes _).when(*, *, *).returns(chr1)
-        (chr1.mutate _).when(*, *).noMoreThanOnce
+        ((x, y, z) => chr1.crossChromosomes(x, y, z)).when(*, *, *).returns(chr1)
+        ((x, y) => chr1.mutate(x, y)).when(*, *).atLeastOnce()
+        ((x, y) => chr1.mutate(x, y)).when(*, *).noMoreThanOnce()
         new Breeding(randMock).conception(chr1, chr2)
-      }
-      "not mutate if doMutation returns false" in {
+        succeed
+
+      "not mutate if doMutation returns false" in :
         val randMock = stub[RandomUtils]
-        (randMock.shouldMutate _).when.returns(false).once
+        (() => randMock.shouldMutate()).when().returns(false).once()
         val chr1 = stub[Chromosome]
         val chr2 = stub[Chromosome]
-        (chr1.crossChromosomes _).when(*, *, *).returns(chr1)
-        (chr1.mutate _).when(*, *).never
+        ((x, y, z) => chr1.crossChromosomes(x, y, z)).when(*, *, *).returns(chr1)
+        ((x, y) => chr1.mutate(x, y)).when(*, *).never()
         new Breeding(randMock).conception(chr1, chr2)
-      }
-      "cross zygotes if doCrossZygotes returns true" in {
+        succeed
+
+      "cross zygotes if doCrossZygotes returns true" in :
         val randMock = stub[RandomUtils]
-        (randMock.shouldCrossZygotes _).when.returns(true).once
+        (() => randMock.shouldCrossZygotes()).when().returns(true).once()
         val chr1 = stub[Chromosome]
         val chr2 = stub[Chromosome]
-        (chr1.crossChromosomes _).when(*, *, *).returns(chr1)
-        (chr1.crossZygotes _).when(*, *).noMoreThanOnce
+        ((x, y, z) => chr1.crossChromosomes(x, y, z)).when(*, *, *).returns(chr1)
+        ((x, y) => chr1.crossZygotes(x, y)).when(*, *).noMoreThanOnce()
         new Breeding(randMock).conception(chr1, chr2)
-      }
-      "not cross zygotes if doMutation returns false" in {
+        succeed
+
+      "not cross zygotes if doMutation returns false" in :
         val randMock = stub[RandomUtils]
-        (randMock.shouldCrossZygotes _).when.returns(false).once
+        (() => randMock.shouldCrossZygotes()).when().returns(false).once()
         val chr1 = stub[Chromosome]
         val chr2 = stub[Chromosome]
-        (chr1.crossChromosomes _).when(*, *, *).returns(chr1)
-        (chr1.crossZygotes _).when(*, *).never
+        ((x, y, z) => chr1.crossChromosomes(x, y, z)).when(*, *, *).returns(chr1)
+        ((x, y) => chr1.crossZygotes(x, y)).when(*, *).never()
         new Breeding(randMock).conception(chr1, chr2)
-      }
-      "cross chromosome in positions defined by rand" in forAll { (begin: Int, end: Int) =>
+        succeed
+
+      "cross chromosome in positions defined by rand" in forAll: (begin: Int, end: Int) =>
         val randMock = stub[RandomUtils]
-        inSequence {
-          (randMock.crossingChromosomePos _).when.returns(begin).once
-          (randMock.crossingChromosomePos _).when.returns(end).once
-        }
+        inSequence:
+          (() => randMock.crossingChromosomePos()).when().returns(begin).once()
+          (() => randMock.crossingChromosomePos()).when().returns(end).once()
+
         val chr1 = mock[Chromosome]
         val chr2 = mock[Chromosome]
-        (chr1.crossChromosomes _).expects(*, begin, end)
+        ((x, y, z) => chr1.crossChromosomes(x, y, z)).expects(*, begin, end)
         new Breeding(randMock).conception(chr1, chr2)
-      }
-      "mutate chromosome in position defined by rand" in forAll { (pos: Int) =>
+        succeed
+
+      "mutate chromosome in position defined by rand" in forAll: (pos: Int) =>
         val randMock = stub[RandomUtils]
-        (randMock.mutationPos _).when.returns(pos).once
-        (randMock.shouldMutate _).when.returns(true).once
+        (() => randMock.mutationPos()).when().returns(pos).once()
+        (() => randMock.shouldMutate()).when().returns(true).once()
         val chr1 = stub[Chromosome]
         val chr2 = mock[Chromosome]
-        (chr1.crossChromosomes _).when(*, *, *).returns(chr2)
-        (chr2.mutate _).expects(pos, *).once
+        ((x, y, z) => chr1.crossChromosomes(x, y, z)).when(*, *, *).returns(chr2)
+        ((x, y) => chr2.mutate(x, y)).expects(pos, *).once()
         new Breeding(randMock).conception(chr1, chr2)
-      }
-      "cross zygotes of chromosome in positions defined by rand" in forAll { (begin: Int, amount: Int) =>
+        succeed
+
+      "cross zygotes of chromosome in positions defined by rand" in forAll: (begin: Int, amount: Int) =>
         val randMock = stub[RandomUtils]
-        (randMock.shouldMutate _).when.returns(false).once
-        inSequence {
-          (randMock.crossingZygotePos _).when.returns(begin).once
-          (randMock.crossingZygotePos _).when.returns(amount).once
-        }
-        (randMock.shouldCrossZygotes _).when.returns(true).once
+        (() => randMock.shouldMutate()).when().returns(false).once()
+        inSequence:
+          (() => randMock.crossingZygotePos()).when().returns(begin).once()
+          (() => randMock.crossingZygotePos()).when().returns(amount).once()
+
+        (() => randMock.shouldCrossZygotes()).when().returns(true).once()
         val chr1 = stub[Chromosome]
         val chr2 = mock[Chromosome]
-        (chr1.crossChromosomes _).when(*, *, *).returns(chr2)
-        (chr2.crossZygotes _).expects(begin, amount + 1).once
+        chr1.crossChromosomes.when(*, *, *).returns(chr2)
+        chr2.crossZygotes.expects(begin, amount + 1).once()
         new Breeding(randMock).conception(chr1, chr2)
-      }
-    }
-  }
-}
+        succeed

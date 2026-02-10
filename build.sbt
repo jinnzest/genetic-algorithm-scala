@@ -3,12 +3,19 @@ name := "genetic-algorithm"
 
 version := "0.1-SNAPSHOT"
 
-scalaVersion := "2.12.3"
+val scala3Version = "3.7.4"
 
-libraryDependencies ++= Seq(
-  "org.scalacheck" %% "scalacheck" % "1.13.4" % Test,
-  "org.scalatest" %% "scalatest" % "3.0.1" % Test,
-  "org.scalamock" %% "scalamock-scalatest-support" % "3.5.0" % Test
-)
+lazy val root = project
+  .in(file("."))
+  .settings(
+    name := "Scala 3 Project Template",
+    version := "0.1.0-SNAPSHOT",
+    scalaVersion := scala3Version,
+    libraryDependencies ++= Seq(
+      "org.scalatestplus" %% "scalacheck-1-17" % "3.2.18.0" % Test,
+      "org.scalatest" %% "scalatest" % "3.2.18" % Test,
+      "org.scalamock" %% "scalamock" % "7.5.5" % Test
+    )
+  )
 
-packAutoSettings
+assembly/assemblyJarName := "genetic-algorithm"
