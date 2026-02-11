@@ -11,3 +11,6 @@ JDK: OpenJdk 21
 
 To try it yourself run: `sbt clean assembly` && `java -jar ./target/scala-3.7.4/genetic-algorithm`
 
+Optimization steps and measurements:
+
+1. Without optimization, it runs 100000 generations for about 4488088 ms (~ 75 minutes)
