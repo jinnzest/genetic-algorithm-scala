@@ -12,11 +12,12 @@ package object genetic:
     else basedFitness / fitnessRange
 
   def gray2bin(num: Long): Long =
-    var r = num
-    var mask = r >>> 1L
-    while mask != 0 do
-      r = r ^ mask
-      mask = mask >>> 1L
+    var r = (num >>> 32) ^ num
+    r ^= r >>> 16
+    r ^= r >>> 8
+    r ^= r >>> 4
+    r ^= r >>> 2
+    r ^= r >>> 1
     r
 
   def decodeBitsToNumbers(numbers: Array[Long]): Array[Long] =
