@@ -17,3 +17,4 @@ Optimization steps and measurements:
 2. Replace Array[Gen] by Array[Long], it runs for about 92191 ms, ~ 49 times faster than initial one (~ 92  seconds)
 3. Optimize Gray code, it runs for about 44863 ms, ~ 100 times faster than initial one (~ 44 seconds)
 4. Move all objects to pools to reuse them, it runs for about 28219 ms, ~ 159 times faster than initial one (~ 28 seconds)
+5. Replace Random by ThreadLocalRandom, it runs for about 23909 ms, ~ 188 times faster than initial one (~ 24 seconds)
