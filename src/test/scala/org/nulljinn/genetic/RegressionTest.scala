@@ -43,8 +43,8 @@ class RegressionTest extends AnyWordSpec:
           assert(g == genTo.toChar || g == genFrom.toChar)
 
     val fitnessCalculator = new FitnessCalculator:
-      override def calcFitness(bits: Array[Boolean]): Double = sign * bits.foldLeft(0.0): (acc, v) =>
-        if v then acc + 1 else acc
+      override def calcFitness(bits: Array[Long]): Double = sign * bits.foldLeft(0.0): (acc, v) =>
+        java.lang.Long.bitCount(v) + acc
 
     val rand = new RandomUtilsMock(genesAmount, genFrom, genTo)
 

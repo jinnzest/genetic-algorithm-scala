@@ -6,12 +6,12 @@ class UtilsTest extends AnyWordSpec:
   "genetic package methods" when :
     "calc gray code" should :
       "1000 -> 1111" in :
-        val res = gray2bin((true :: false :: false :: false :: Nil).toArray)
-        assert(res sameElements true :: true :: true :: true :: Nil)
+        val res = gray2bin(0x8)
+        assert((res & 0xF) == 0xF)
 
       "1111 -> 1010" in :
-        val res = gray2bin((true :: true :: true :: true :: Nil).toArray)
-        assert(res sameElements true :: false :: true :: false :: Nil)
+        val res = gray2bin(0xF)
+        assert((res & 0xF) == 0xA)
 
     "normalize fitness" should :
       "0 in [0,0] == 1" in :
@@ -38,27 +38,25 @@ class UtilsTest extends AnyWordSpec:
       "0 in [-10,10] == 0.5" in :
         assert(normalizeFitness(0, -10, 10) == 0.5)
 
-      "-9 in [-10,10] == 0" in :
+      "-1000000 in [-10,10] == 0" in :
         assert(normalizeFitness(-9, -10, 10) == 0.05)
 
     "decodeBitsToNumbers" should :
       "0000000000000000000000000000000000000000000000000000000000000010 be 3" in :
-        val listOf52False = (1 to 62).foldLeft(List.empty[Boolean])((acc, _) => false :: acc)
-        assert(decodeBitsToNumbers((listOf52False ::: true :: false :: Nil).toArray) sameElements (3 :: Nil))
+        assert(decodeBitsToNumbers(NumbersLine(
+          "0000000000000000000000000000000000000000000000000000000000000010"
+        ).numbers) sameElements (3 :: Nil))
 
       "0000000000000000000000000000000000000000000000000000000010000000 be 255" in :
-        val listOf52False = (1 to 56).foldLeft(List.empty[Boolean])((acc, _) => false :: acc)
-        val listOf7False = (1 to 7).foldLeft(List.empty[Boolean])((acc, _) => false :: acc)
-        assert(decodeBitsToNumbers((listOf52False ::: true :: listOf7False).toArray) sameElements (255 :: Nil))
+        assert(decodeBitsToNumbers(NumbersLine(
+          "0000000000000000000000000000000000000000000000000000000010000000"
+        ).numbers) sameElements (255 :: Nil))
 
-      "0000000000000000000000000000001000000000000000000000000000000011 be 3, 2" in :
-        val listOf52False = (1 to 62).foldLeft(List.empty[Boolean])((acc, _) => false :: acc)
+      "0000000000000000000000000000000000000000000000000000000000000010" +
+        "0000000000000000000000000000000000000000000000000000000000000011 be 3, 2" in :
         assert(decodeBitsToNumbers(
-          (listOf52False ::: true :: false :: listOf52False ::: true :: true :: Nil).toArray) sameElements (3 :: 2 :: Nil))
-
-    "toNumber" should :
-      "11111111 -> 255" in :
-        assert(toNumber((true :: true :: true :: true :: true :: true :: true :: true :: Nil).toArray) == 255)
-
-      "00000000 -> 0" in :
-        assert(toNumber((false :: false :: false :: false :: false :: false :: false :: false :: Nil).toArray) == 0)
+          NumbersLine(
+            "0000000000000000000000000000000000000000000000000000000000000010" +
+              "0000000000000000000000000000000000000000000000000000000000000011"
+          ).numbers.reverse
+        ) sameElements (3 :: 2 :: Nil))

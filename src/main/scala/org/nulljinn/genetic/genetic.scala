@@ -2,6 +2,7 @@ package org.nulljinn
 
 package object genetic:
 
+  val genesPerGroup = 4
   val longBitsAmount = 64
 
   def normalizeFitness(fitness: Double, minFitness: Double, maxFitness: Double): Double =
@@ -10,42 +11,43 @@ package object genetic:
     if fitnessRange == 0.0 then 1.0
     else basedFitness / fitnessRange
 
-  def gray2bin(n: Array[Boolean]): Array[Boolean] =
-    var pos = -1
-    n.map: v =>
-      pos += 1
-      xorUntilPos(n, pos)
+  def gray2bin(num: Long): Long =
+    var r = num
+    var mask = r >>> 1L
+    while mask != 0 do
+      r = r ^ mask
+      mask = mask >>> 1L
+    r
 
-  def decodeBitsToNumbers(bits: Array[Boolean]): Array[Long] =
-    val len = bits.length
-    val numbersAmount = len / longBitsAmount + (if len % longBitsAmount > 0 then 1 else 0)
-    var numbers = Array.fill(numbersAmount)(0L)
-    var pos = numbersAmount - 1
-    var shift = (numbersAmount - 1) * longBitsAmount
-    val shiftSize = if longBitsAmount > len then len else longBitsAmount
-    while pos >= 0 do
-      val numBits = Array.fill(shiftSize)(false)
-      Array.copy(bits, shift, numBits, 0, shiftSize)
-      numbers = numbers.updated(pos, toNumber(gray2bin(numBits)))
-      shift -= shiftSize
-      pos -= 1
-    numbers
+  def decodeBitsToNumbers(numbers: Array[Long]): Array[Long] =
+    var p = 0
+    val decoded = numbers.clone()
+    while p < numbers.length do
+      decoded(p) = gray2bin(numbers(p))
+      p += 1
+    decoded
 
-  def toNumber(a: Array[Boolean]): Long =
-    var n = 0L
-    val len = a.length
-    var i = 0
-    while
-      i < len
-    do
-      n = (n << 1) + (if a(i) then 1 else 0)
-      i += 1
-    n
+  def toStr(numbers: Array[Long]): String =
+    var p = 0
+    var str = ""
+    while p < numbers.length do
+      str += numbers(p) + " "
+      p += 1
+    str
 
-  private def xorUntilPos(n: Array[Boolean], posTo: Int) =
-    var value = false
+  def toBinary(n: Long): String =
     var pos = 0
-    while pos <= posTo do
-      value = value ^ n(pos)
-      pos = pos + 1
-    value
+    var m = 1L
+    var str = ""
+    while pos < longBitsAmount do
+      val ch = if ((n & m) != 0) '1' else '0'
+      str = ch + str
+      m <<= 1L
+      pos += 1
+    groupBy4(str)
+
+  private def groupBy4(str: String) =
+    str.grouped(genesPerGroup).foldLeft(""): (acc, v) =>
+      acc + " " + v
+
+  def numberMask(pos: Int): Long = 1L << pos % longBitsAmount

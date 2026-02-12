@@ -8,7 +8,7 @@ object Main:
   private def createIncubator() =
     val rand = new RandomUtilsPerfImpl(chromosomeGenesAmount)
     val fitnessCalculator = new FitnessCalculator:
-      override def calcFitness(bits: Array[Boolean]): Double =
+      override def calcFitness(bits: Array[Long]): Double =
         funcToFindGlobalExtremum(decodeBitsToNumbers(bits))
 
       private def funcToFindGlobalExtremum(numbersList: Array[Long]): Double =

@@ -1,6 +1,7 @@
 package org.nulljinn.genetic
 
 import org.nulljinn.genetic.Gen.*
+import org.nulljinn.genetic.Shared.groupByIntAndBytePos
 import org.scalacheck.Gen as SCGen
 import org.scalatest.wordspec.AnyWordSpec
 import org.scalatestplus.scalacheck.ScalaCheckPropertyChecks.forAll
@@ -18,11 +19,13 @@ class ZygoteTest extends AnyWordSpec:
     "mutate" should :
       "not modify genes outside defined position" in forAll(genGen, SCGen.posNum[Int]): (g, mPos) =>
         val mutPos = mPos % chromosomeGenesAmount
-        val zygote = generateZygote()
-        val mutatedZygote = zygote.mutate(mutPos, g)
 
+        val zygote = generateZygote()
         val initialGenesStr = normalizeGenesStr(zygote.toString)
-        val mutatedGenesStr = normalizeGenesStr(mutatedZygote.toString)
+
+        zygote.mutate(mutPos, g)
+        val mutatedGenesStr = normalizeGenesStr(zygote.toString)
+
         assert(initialGenesStr.zip(mutatedGenesStr).zipWithIndex.forall: pair =>
           val ((initial, mutated), pos) = pair
           if pos == mPos then
@@ -34,9 +37,20 @@ class ZygoteTest extends AnyWordSpec:
       "modify gen defined by pos" in forAll(genGen, SCGen.posNum[Int]): (g, mPos) =>
         val mutPos = mPos % chromosomeGenesAmount
         val zygote = generateZygote()
-        val mutatedZygote = zygote.mutate(mutPos, g)
+        val initialGenesStr = normalizeGenesStr(zygote.toString)
 
-        assert(normalizeGenesStr(mutatedZygote.toString).zipWithIndex.forall: (gen, pos) =>
+        zygote.mutate(mutPos, g)
+        val mutatedGenesStr = normalizeGenesStr(zygote.toString)
+
+        assert(initialGenesStr.zip(mutatedGenesStr).zipWithIndex.forall: pair =>
+          val ((initial, mutated), pos) = pair
+          if pos == mPos then
+            true
+          else
+            initial == mutated
+        )
+        assert(normalizeGenesStr(zygote.toString).zipWithIndex.forall: pair =>
+          val (gen, pos) = pair
           if pos == mutPos then
             gen == g.toChar
           else
@@ -56,18 +70,51 @@ class ZygoteTest extends AnyWordSpec:
         val endPosition = endPos % chromosomeGenesAmount
         val zgt = generateZygote()
         val zgt2 = generateZygote()
-        val crossedZygote = zgt.cross(zgt2, bgnPosition, endPosition)
+        val crossedZygote = zgt.cross(zgt2, bgnPosition, endPosition, false)
 
         assert(zgt.toString.length == crossedZygote.toString.length)
 
       "cross parts" in :
         val zgt1 = Zygote("dddd dddd dddd")
         val zgt2 = Zygote("rrrr rrrr rrrr")
-        val crossed = zgt1.cross(zgt2, 3, 4)
+        val crossed = zgt1.cross(zgt2, 3, 4, false)
         assert(crossed.toString == "dddd drrr rddd")
 
       "cross parts when end pos bigger than size" in :
         val zgt1 = Zygote("dddd dddd dddd")
         val zgt2 = Zygote("rrrr rrrr rrrr")
-        val crossed = zgt1.cross(zgt2, 3, 21)
-        assert(crossed.toString == "rrrr rrrr rddd")
+        assert(zgt1.cross(zgt2, 3, 50, true).toString == "rrrr rrrr rddd")
+
+    "compose numbers from str" should :
+      "map rrrr to (0x0,0x0)" in :
+        val zygote = Zygote("rrrr")
+        assert((zygote.dominance.getNumber(0) & 0xF) == 0x0)
+        assert((zygote.values.getNumber(0) & 0xF) == 0x0)
+
+      "map dddd to (0xF,0x0)" in :
+        val zygote = Zygote("dddd")
+        assert((zygote.dominance.getNumber(0) & 0xF) == 0xF)
+        assert((zygote.values.getNumber(0) & 0xF) == 0x0)
+
+      "map DDDD to (0xF,0xF)" in :
+        val zygote = Zygote("DDDD")
+        assert((zygote.dominance.getNumber(0) & 0xF) == 0xF)
+        assert((zygote.values.getNumber(0) & 0xF) == 0xF)
+
+      "map RRRR to (0x0,0xF)" in :
+        val zygote = Zygote("RRRR")
+        assert((zygote.dominance.getNumber(0) & 0xF) == 0x0)
+        assert((zygote.values.getNumber(0) & 0xF) == 0xF)
+
+      "map DDRRddrr to (0xCC,0xF0)" in :
+        val zygote = Zygote("DDRR ddrr")
+        assert((zygote.dominance.getNumber(0) & 0xFF) == 0xCC)
+        assert((zygote.values.getNumber(0) & 0xFF) == 0xF0)
+
+      "map DDRRddrr to and back" in :
+        assert(Zygote("DDRR ddrr").toString == "DDRR ddrr")
+
+      "pass 70 random genes to and back without modifications" in forAll(SCGen.listOfN(72, SCGen.oneOf('D', 'd', 'R', 'r'))): (chars: List[Char]) =>
+        val reference = groupByIntAndBytePos(chars)
+        val restored = Zygote(reference).toString
+        assert(restored == reference)
